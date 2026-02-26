@@ -29,7 +29,6 @@ public class CartController {
     private final CartService cartService;
 
     @Operation(summary = "Get user's cart")
-    @RequiresRole(UserRole.CUSTOMER)
     @GetMapping
     public ResponseEntity<ApiResponse<CartResponseDTO>> getCart(HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("authUserId");
@@ -39,7 +38,7 @@ public class CartController {
     }
 
     @Operation(summary = "Add item to cart")
-    @RequiresRole(UserRole.CUSTOMER)
+    // @RequiresRole(UserRole.CUSTOMER)
     @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponseDTO>> addItemToCart(
             @Valid @RequestBody AddCartItemDTO request,
@@ -52,7 +51,6 @@ public class CartController {
     }
 
     @Operation(summary = "Update cart item quantity")
-    @RequiresRole(UserRole.CUSTOMER)
     @PutMapping("/item/{itemId}")
     public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(
             @PathVariable Long itemId,
@@ -65,7 +63,6 @@ public class CartController {
     }
 
     @Operation(summary = "Remove item from cart")
-    @RequiresRole(UserRole.CUSTOMER)
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<ApiResponse<CartResponseDTO>> removeItemFromCart(
             @PathVariable Long itemId,
@@ -77,7 +74,6 @@ public class CartController {
     }
 
     @Operation(summary = "Clear cart")
-    @RequiresRole(UserRole.CUSTOMER)
     @DeleteMapping("/clear")
     public ResponseEntity<ApiResponse<Void>> clearCart(HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("authUserId");
@@ -87,7 +83,6 @@ public class CartController {
     }
 
     @Operation(summary = "Checkout cart")
-    @RequiresRole(UserRole.CUSTOMER)
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<CartResponseDTO>> checkoutCart(HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("authUserId");

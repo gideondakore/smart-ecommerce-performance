@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AddInventory() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     productId: 0,
     quantity: 0,
@@ -22,12 +22,12 @@ export default function AddInventory() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
       await inventoryApi.add(formData);
       router.push("/admin");
     } catch (err: any) {
-      setError(err.message || 'Failed to add inventory');
+      setError(err.message || "Failed to add inventory");
     }
   };
 
@@ -84,7 +84,7 @@ export default function AddInventory() {
               placeholder="e.g., Warehouse A, Shelf 5"
             />
           </div>
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <label className="block mb-2">Reorder Level</label>
             <input
               type="number"
@@ -97,7 +97,7 @@ export default function AddInventory() {
               }
               className="w-full border rounded px-3 py-2"
             />
-          </div>
+          </div> */}
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2"

@@ -42,7 +42,7 @@ export default function Home() {
       // Use GraphQL for simple initial load
       productApi.getAllGraphQL().then((res) => {
         console.log("GraphQL products response:", res);
-        setProducts(res.data.content.slice(0, 12));
+        setProducts(res.data.content.slice(0));
         setTotalPages(Math.ceil(res.data.content.length / 12));
       });
     }
@@ -190,9 +190,13 @@ export default function Home() {
               <p className="text-xl font-bold text-green-600">
                 ${product.price}
               </p>
-              {product.quantity > 0 && product.quantity < 10 && (
+              {product.quantity > 0 && product.quantity < 10 ? (
                 <p className="text-orange-600 text-sm mt-2">
                   Only {product.quantity} left!
+                </p>
+              ) : (
+                <p className="text-green-600 text-sm mt-2">
+                  {product.quantity} in stock
                 </p>
               )}
               <Link
