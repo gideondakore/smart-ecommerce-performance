@@ -15,6 +15,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const newUser = await register(firstName, lastName, email, password);
       // Redirect based on user role (new users are typically CUSTOMER)

@@ -10,6 +10,7 @@ export default function OrderDetail() {
   const { user } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [status, setStatus] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     orderApi.getById(Number(params.id)).then((res) => {
@@ -19,9 +20,14 @@ export default function OrderDetail() {
   }, [params.id]);
 
   const handleUpdateStatus = async () => {
-    await orderApi.updateStatus(Number(params.id), { status });
-    const res = await orderApi.getById(Number(params.id));
-    setOrder(res.data);
+    setError('');
+    try {
+      await orderApi.updateStatus(Number(params.id), { status });
+      const res = await orderApi.getById(Number(params.id));
+      setOrder(res.data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update order status');
+    }
   };
 
   if (!order)
@@ -35,6 +41,11 @@ export default function OrderDetail() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-3xl font-bold mb-6">Order #{order.id}</h1>
+        {error && (
+          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         <div className="mb-6">
           <p className="mb-2">
             <strong>User:</strong> {order.userName}

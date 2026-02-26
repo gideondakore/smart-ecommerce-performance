@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AddInventory() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     productId: 0,
     quantity: 0,
@@ -21,14 +22,24 @@ export default function AddInventory() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await inventoryApi.add(formData);
-    router.push("/admin");
+    setError('');
+    try {
+      await inventoryApi.add(formData);
+      router.push("/admin");
+    } catch (err: any) {
+      setError(err.message || 'Failed to add inventory');
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-3xl font-bold mb-6">Add Inventory</h1>
+        {error && (
+          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block mb-2">Product</label>

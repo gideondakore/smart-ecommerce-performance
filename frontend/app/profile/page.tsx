@@ -9,6 +9,7 @@ export default function Profile() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [editing, setEditing] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({ username: "", email: "" });
 
   useEffect(() => {
@@ -23,10 +24,15 @@ export default function Profile() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await userApi.updateProfile(formData);
-    const res = await userApi.getProfile();
-    setProfile(res.data);
-    setEditing(false);
+    setError('');
+    try {
+      await userApi.updateProfile(formData);
+      const res = await userApi.getProfile();
+      setProfile(res.data);
+      setEditing(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update profile');
+    }
   };
 
   if (!profile)
@@ -40,6 +46,11 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-3xl font-bold mb-6">Profile</h1>
+        {error && (
+          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         {!editing ? (
           <div>
             <p className="mb-2">

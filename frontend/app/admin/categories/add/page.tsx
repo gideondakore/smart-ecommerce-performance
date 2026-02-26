@@ -5,18 +5,29 @@ import { useRouter } from 'next/navigation';
 
 export default function AddCategory() {
   const router = useRouter();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({ name: '', description: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await categoryApi.add(formData);
-    router.push('/admin');
+    setError('');
+    try {
+      await categoryApi.add(formData);
+      router.push('/admin');
+    } catch (err: any) {
+      setError(err.message || 'Failed to add category');
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-3xl font-bold mb-6">Add Category</h1>
+        {error && (
+          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block mb-2">Name</label>

@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 export default function EditInventory() {
   const router = useRouter();
   const params = useParams();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({ quantity: 0, reorderLevel: 0, location: '' });
   const [productName, setProductName] = useState('');
 
@@ -23,8 +24,13 @@ export default function EditInventory() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await inventoryApi.update(Number(params.id), formData);
-    router.push('/admin');
+    setError('');
+    try {
+      await inventoryApi.update(Number(params.id), formData);
+      router.push('/admin');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update inventory');
+    }
   };
 
   return (
@@ -32,6 +38,11 @@ export default function EditInventory() {
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-3xl font-bold mb-6">Edit Inventory</h1>
         <p className="mb-4 text-gray-600">Product: {productName}</p>
+        {error && (
+          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block mb-2">Quantity</label>
