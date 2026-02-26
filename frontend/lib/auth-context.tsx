@@ -40,7 +40,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userApi
         .getProfile()
         .then((res) => {
-          setUser(res.data);
+          const profileData = res.data;
+          setUser({
+            id: profileData.id,
+            firstName: profileData.firstName,
+            lastName: profileData.lastName,
+            email: profileData.email,
+            role: typeof profileData.role === 'string' ? profileData.role : profileData.role?.toString() || 'CUSTOMER'
+          });
         })
         .catch(() => setAuthToken(null));
     }

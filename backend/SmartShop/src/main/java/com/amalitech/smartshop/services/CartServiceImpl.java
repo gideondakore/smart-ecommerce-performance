@@ -19,6 +19,7 @@ import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO addItemToCart(AddCartItemDTO request, Long userId) {
         log.info("Adding item to cart for user: {}", userId);
         
@@ -84,6 +86,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO updateCartItem(Long itemId, UpdateCartItemDTO request, Long userId) {
         log.info("Updating cart item: {} for user: {}", itemId, userId);
         
@@ -108,6 +111,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO removeItemFromCart(Long itemId, Long userId) {
         log.info("Removing item from cart: {} for user: {}", itemId, userId);
         
@@ -131,6 +135,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
         log.info("Clearing cart for user: {}", userId);
         
@@ -143,6 +148,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDTO checkoutCart(Long userId) {
         log.info("Checking out cart for user: {}", userId);
         

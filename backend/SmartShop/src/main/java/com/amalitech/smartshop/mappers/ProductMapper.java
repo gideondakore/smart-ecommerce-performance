@@ -27,7 +27,6 @@ public interface ProductMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "categoryId", ignore = true)
     @Mapping(target = "vendorId", ignore = true)
-    @Mapping(target = "available", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
