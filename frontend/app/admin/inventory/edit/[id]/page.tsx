@@ -6,13 +6,17 @@ import { useRouter, useParams } from 'next/navigation';
 export default function EditInventory() {
   const router = useRouter();
   const params = useParams();
-  const [formData, setFormData] = useState({ quantity: 0, reorderLevel: 0 });
+  const [formData, setFormData] = useState({ quantity: 0, reorderLevel: 0, location: '' });
   const [productName, setProductName] = useState('');
 
   useEffect(() => {
     inventoryApi.getById(Number(params.id)).then(res => {
       const i = res.data;
-      setFormData({ quantity: i.quantity, reorderLevel: i.reorderLevel });
+      setFormData({ 
+        quantity: i.quantity || 0, 
+        reorderLevel: i.reorderLevel || 0,
+        location: i.location || ''
+      });
       setProductName(i.productName);
     });
   }, [params.id]);
