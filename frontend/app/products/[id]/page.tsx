@@ -42,6 +42,12 @@ export default function ProductDetail() {
       return;
     }
     try {
+      if (quantity < 1) {
+        setError("Quantity must be at least 1");
+        setMessage("");
+        return;
+      }
+
       await cartApi.addItem({ productId: product.id, quantity });
       setMessage("Item added to cart successfully!");
       setError("");

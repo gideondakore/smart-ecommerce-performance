@@ -58,7 +58,11 @@ public class ProductServiceImpl implements ProductService {
         if ("VENDOR".equals(userRole) && userId != null) {
             product.setVendorId(userId);
         }
-        
+
+        if(product.getImageUrl() == null){
+            product.setImageUrl("https://placehold.net/1.png");
+        }
+
         Product savedProduct = productRepository.save(product);
         
         ProductResponseDTO response = productMapper.toResponseDTO(savedProduct);

@@ -23,27 +23,31 @@ export default function Home() {
   useEffect(() => {
     // Use GraphQL for simple listing, REST for filtering/search
     const hasFilters = selectedCategory || searchQuery || page > 0;
-    
+
     if (hasFilters) {
       // Use REST API for complex queries with filters
       productApi
-        .getAll({ 
-          page, 
-          size: 12, 
+        .getAll({
+          page,
+          size: 12,
           categoryId: selectedCategory,
-          search: searchQuery || undefined
+          search: searchQuery || undefined,
         })
         .then((res) => {
+          console.log("REST products response:", res);
           setProducts(res.data.content);
           setTotalPages(res.data.totalPages);
         });
     } else {
       // Use GraphQL for simple initial load
       productApi.getAllGraphQL().then((res) => {
+        console.log("GraphQL products response:", res);
         setProducts(res.data.content.slice(0, 12));
         setTotalPages(Math.ceil(res.data.content.length / 12));
       });
     }
+
+    console.log("Fetching products with filters:", products);
   }, [page, selectedCategory, searchQuery]);
 
   return (

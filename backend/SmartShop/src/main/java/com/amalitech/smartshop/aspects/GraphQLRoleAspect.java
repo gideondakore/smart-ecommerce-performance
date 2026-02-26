@@ -19,7 +19,6 @@ public class GraphQLRoleAspect {
 
     @Around("@annotation(com.amalitech.smartshop.config.GraphQLRequiresRole)")
     public Object checkRole(ProceedingJoinPoint joinPoint) throws Throwable {
-        // I validate the user's role for GraphQL operations
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         GraphQLRequiresRole annotation = signature.getMethod().getAnnotation(GraphQLRequiresRole.class);
 

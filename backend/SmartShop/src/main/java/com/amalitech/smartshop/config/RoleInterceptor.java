@@ -8,11 +8,13 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Interceptor for role-based authorization.
  * Validates that the authenticated user has the required role.
  */
+@Slf4j
 @Component
 public class RoleInterceptor implements HandlerInterceptor {
     
@@ -28,6 +30,7 @@ public class RoleInterceptor implements HandlerInterceptor {
         if (annotation == null) return true;
 
         String userRole = (String) request.getAttribute("authenticatedUserRole");
+        log.info("Role check - Required: {}, User has: {}", annotation.value(), userRole);
 
         for (UserRole requiredRole : annotation.value()) {
             if (requiredRole.name().equals(userRole)) {

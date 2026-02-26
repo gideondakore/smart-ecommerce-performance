@@ -19,6 +19,7 @@ type Product {
   price: Float!
   quantity: Int
   categoryName: String
+  imageUrl: String
 }
 
 type Inventory {

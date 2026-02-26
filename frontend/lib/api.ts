@@ -202,6 +202,7 @@ export const productApi = {
           price
           quantity
           categoryName
+          imageUrl
         }
       }
     `;

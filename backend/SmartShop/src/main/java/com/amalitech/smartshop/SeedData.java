@@ -200,6 +200,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(1L)
                     .sku("LAP-001")
                     .price(1299.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -212,6 +213,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(1L)
                     .sku("MOU-001")
                     .price(29.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -224,6 +226,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(1L)
                     .sku("CAB-001")
                     .price(12.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -236,6 +239,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(2L)
                     .sku("TSH-001")
                     .price(19.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -248,6 +252,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(2L)
                     .sku("JEA-001")
                     .price(49.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -260,6 +265,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(3L)
                     .sku("HOS-001")
                     .price(34.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -272,6 +278,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(4L)
                     .sku("BAS-001")
                     .price(24.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();
@@ -284,6 +291,7 @@ public class SeedData implements CommandLineRunner {
                     .categoryId(4L)
                     .sku("YOG-001")
                     .price(29.99)
+                    .imageUrl("https://placehold.net/1.png")
                     .available(true)
                     .vendorId(vendorId)
                     .build();

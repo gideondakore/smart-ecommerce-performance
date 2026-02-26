@@ -31,6 +31,14 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // Allow public GET requests for products and categories
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+        if ("GET".equalsIgnoreCase(method) && 
+            (path.startsWith("/api/products") || path.startsWith("/api/categories"))) {
+            return true;
+        }
+
         String authHeader = request.getHeader("Authorization");
         log.info("Auth Header: {}", authHeader);
 
@@ -45,6 +53,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         
         User user = userRepository.findById(session.getUserId())
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
+        
+        log.info("Authenticated user: id={}, role={}", user.getId(), user.getRole().name());
         
         request.setAttribute("authUserId", session.getUserId());
         request.setAttribute("authenticatedUserRole", user.getRole().name());
