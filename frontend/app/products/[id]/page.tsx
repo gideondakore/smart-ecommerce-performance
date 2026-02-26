@@ -97,13 +97,13 @@ export default function ProductDetail() {
         </button>
 
         <div className="bg-white rounded-lg shadow p-8 mb-8">
-          {product.imageUrl && (
+          {
             <img
-              src={product.imageUrl}
+              src={product.imageUrl || "https://placehold.net/1.png"}
               alt={product.name}
               className="w-full h-96 object-cover rounded mb-6"
             />
-          )}
+          }
           <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
           <p className="text-gray-600 mb-4">{product.description}</p>
           <p className="text-3xl font-bold text-green-600 mb-4">

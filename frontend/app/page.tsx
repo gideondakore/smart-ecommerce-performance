@@ -176,13 +176,13 @@ export default function Home() {
                   OUT OF STOCK
                 </div>
               )}
-              {product.imageUrl && (
+              {
                 <img
-                  src={product.imageUrl}
+                  src={product.imageUrl || "https://placehold.net/1.png"}
                   alt={product.name}
                   className="w-full h-48 object-cover rounded mb-4"
                 />
-              )}
+              }
               <h3 className="font-bold text-lg mb-2">{product.name}</h3>
               <p className="text-gray-600 text-sm mb-2">
                 {product.description}
