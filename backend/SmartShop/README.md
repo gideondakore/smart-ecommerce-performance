@@ -303,15 +303,15 @@ cd backend/SmartShop && mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 Query 1: Get All Products
 
-    {
-      allProducts {
-        id
-        name
-        price
-        quantity
-        categoryName
-      }
-    }
+{
+  allProducts {
+    id
+    name
+    price
+    quantity
+    categoryName
+  }
+}
 
 ////////////////////////////////////
 

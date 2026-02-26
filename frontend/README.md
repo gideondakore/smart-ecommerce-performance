@@ -5,16 +5,19 @@ Next.js frontend for the SmartShop e-commerce platform.
 ## Features
 
 ### Public Pages
+
 - **Home** (`/`) - Product listing with category filtering and pagination
 - **Product Detail** (`/products/[id]`) - View product details and place orders
 - **Login** (`/login`) - User authentication
 - **Register** (`/register`) - New user registration
 
 ### User Pages (Authenticated)
+
 - **Profile** (`/profile`) - View and edit user profile
 - **Orders** (`/orders`) - View order history
 
 ### Admin Pages (Admin Role Required)
+
 - **Admin Dashboard** (`/admin`) - Manage products, categories, orders, users, and inventory
 - **Add/Edit Product** - Full CRUD operations for products
 - **Add/Edit Category** - Full CRUD operations for categories
@@ -24,6 +27,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 ## API Endpoints Covered
 
 ### User Management
+
 - POST `/api/users/register` - Register new user
 - POST `/api/users/login` - User login
 - GET `/api/users/profile` - Get authenticated user profile
@@ -34,6 +38,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 - DELETE `/api/users/{id}` - Delete user (Admin)
 
 ### Product Management
+
 - POST `/api/products/add` - Add product (Admin)
 - POST `/api/products/add/bulk` - Add multiple products (Admin)
 - GET `/api/products/public/all` - Get all products with filtering and sorting
@@ -42,6 +47,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 - DELETE `/api/products/{id}` - Delete product (Admin)
 
 ### Category Management
+
 - POST `/api/categories/add` - Add category (Admin)
 - GET `/api/categories/public/all` - Get all categories
 - GET `/api/categories/{id}` - Get category by ID
@@ -49,6 +55,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 - DELETE `/api/categories/{id}` - Delete category (Admin)
 
 ### Order Management
+
 - POST `/api/orders/create` - Create order
 - GET `/api/orders/all` - Get all orders (Admin)
 - GET `/api/orders/user` - Get user orders
@@ -57,6 +64,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 - DELETE `/api/orders/{id}` - Delete order (Admin)
 
 ### Inventory Management
+
 - POST `/api/inventory/add` - Add inventory (Admin)
 - GET `/api/inventory/all` - Get all inventories (Admin)
 - GET `/api/inventory/{id}` - Get inventory by ID
@@ -68,16 +76,19 @@ Next.js frontend for the SmartShop e-commerce platform.
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Configure environment variables in `.env.local`:
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
 3. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -91,3 +102,19 @@ npm run dev
 - TypeScript
 - Tailwind CSS
 - Context API for state management
+
+### API Usage Strategy:
+
+**GraphQL (Simple Reads):**
+
+- Homepage initial product listing
+- Category dropdown
+- Product detail by ID
+
+**REST (Complex Operations):**
+
+- Product search with filters
+- Pagination
+- All mutations (create, update, delete)
+- Admin operations
+- Cart, orders, reviews

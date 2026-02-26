@@ -199,8 +199,6 @@ export const productApi = {
         allProducts {
           id
           name
-          description
-          imageUrl
           price
           quantity
           categoryName
@@ -217,8 +215,6 @@ export const productApi = {
         productById(id: ${id}) {
           id
           name
-          description
-          imageUrl
           price
           quantity
           categoryName
