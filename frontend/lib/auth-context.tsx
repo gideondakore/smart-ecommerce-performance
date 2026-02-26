@@ -46,10 +46,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             firstName: profileData.firstName,
             lastName: profileData.lastName,
             email: profileData.email,
-            role: typeof profileData.role === 'string' ? profileData.role : profileData.role?.toString() || 'CUSTOMER'
+            role:
+              typeof profileData.role === "string"
+                ? profileData.role
+                : profileData.role?.toString() || "CUSTOMER",
           });
         })
-        .catch(() => setAuthToken(null));
+        .catch((error: Error) => {
+          // Only clear the token on genuine auth failures (expired/invalid token),
+          // not on network errors or temporary server unavailability.
+          const msg = error.message?.toLowerCase() || "";
+          if (
+            msg.includes("expired") ||
+            msg.includes("unauthorized") ||
+            msg.includes("invalid token") ||
+            msg.includes("401")
+          ) {
+            setAuthToken(null);
+          }
+        });
     }
   }, []);
 

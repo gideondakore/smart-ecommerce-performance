@@ -51,7 +51,7 @@ const fetchApi = async <T>(
     const data = await response.json();
 
     if (!response.ok) {
-      if (response.status === 401 && data.message?.includes("expired")) {
+      if (response.status === 401) {
         setAuthToken(null);
       }
       throw new Error(data.message || `API Error: ${response.statusText}`);

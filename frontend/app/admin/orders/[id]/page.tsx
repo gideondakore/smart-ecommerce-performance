@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { orderApi } from "@/lib/api";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -10,9 +10,10 @@ export default function OrderDetail() {
   const { user } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [status, setStatus] = useState("");
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    console.log("Fetching order details for ID:", params);
     orderApi.getById(Number(params.id)).then((res) => {
       setOrder(res.data);
       setStatus(res.data.status);
@@ -20,13 +21,13 @@ export default function OrderDetail() {
   }, [params.id]);
 
   const handleUpdateStatus = async () => {
-    setError('');
+    setError("");
     try {
       await orderApi.updateStatus(Number(params.id), { status });
       const res = await orderApi.getById(Number(params.id));
       setOrder(res.data);
     } catch (err: any) {
-      setError(err.message || 'Failed to update order status');
+      setError(err.message || "Failed to update order status");
     }
   };
 

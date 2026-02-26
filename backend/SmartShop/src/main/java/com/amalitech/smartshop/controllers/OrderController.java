@@ -108,7 +108,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Get order by ID")
-    @RequiresRole(UserRole.CUSTOMER)
+    // @RequiresRole(UserRole.CUSTOMER)
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable Long id) {
         OrderResponseDTO order = orderService.getOrderById(id);
