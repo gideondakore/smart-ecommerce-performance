@@ -295,3 +295,44 @@ Order creation is transactional:
 # Development mode
 cd backend/SmartShop && mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
+
+## Spring Graphql Playground
+**url:** http://localhost:8080/graphiql
+
+**example queries **
+
+Query 1: Get All Products
+
+    {
+      allProducts {
+        id
+        name
+        price
+        quantity
+        categoryName
+      }
+    }
+
+////////////////////////////////////
+
+Query 2: Get Product by ID
+
+{
+   productById(id: 1) {
+        id
+        name
+        price
+        quantity
+        categoryName
+   }
+}
+
+Query 3: Get All Categories
+
+{
+    allCategories {
+        id
+        name
+        description
+    }
+}
