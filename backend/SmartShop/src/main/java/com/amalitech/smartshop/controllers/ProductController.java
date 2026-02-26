@@ -71,10 +71,15 @@ public class ProductController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "vendorId", required = false) Long vendorId,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "minPrice", required = false) Double minPrice,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(value = "inStock", required = false) Boolean inStock,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "ascending", defaultValue = "true") boolean ascending,
             @RequestParam(value = "algorithm", defaultValue = "QUICKSORT") String algorithm
     ) {
+        // I retrieve products with optional filtering and search criteria
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         Page<ProductResponseDTO> products;
 
@@ -85,8 +90,9 @@ public class ProductController {
             vendorId = userId;
         }
 
-        if (categoryId != null) {
-            products = productService.getProductsByCategory(categoryId, pageable, isAdmin);
+        // I use the search method when any search/filter criteria is provided
+        if (search != null || minPrice != null || maxPrice != null || inStock != null || categoryId != null) {
+            products = productService.searchProducts(search, categoryId, minPrice, maxPrice, inStock, pageable);
         } else if (vendorId != null) {
             products = productService.getProductsByVendor(vendorId, pageable);
         } else {
@@ -95,13 +101,14 @@ public class ProductController {
 
         List<ProductResponseDTO> productList = new ArrayList<>(products.getContent());
 
-        // Apply custom sorting if sortBy is specified
+        // I apply custom sorting if sortBy is specified
         if (sortBy != null) {
             try {
                 SortingService.ProductSortField field = SortingService.ProductSortField.valueOf(sortBy.toUpperCase());
                 SortingService.SortAlgorithm algo = SortingService.SortAlgorithm.valueOf(algorithm.toUpperCase());
                 sortingService.sortProducts(productList, field, ascending, algo);
             } catch (IllegalArgumentException e) {
+                // I ignore invalid sortBy or algorithm values
             }
         }
 

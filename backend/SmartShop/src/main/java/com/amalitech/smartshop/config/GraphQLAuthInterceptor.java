@@ -4,7 +4,7 @@ import com.amalitech.smartshop.entities.Session;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
 import com.amalitech.smartshop.interfaces.SessionService;
-import com.amalitech.smartshop.interfaces.UserRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.server.WebGraphQlInterceptor;
 import org.springframework.graphql.server.WebGraphQlRequest;
@@ -23,7 +23,7 @@ import java.util.List;
 public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
 
     private final SessionService sessionService;
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private static final List<String> PUBLIC_QUERIES = List.of("allProducts", "productById", "allCategories", "categoryById");
     private static final List<String> PUBLIC_MUTATIONS = List.of("login", "register");
 

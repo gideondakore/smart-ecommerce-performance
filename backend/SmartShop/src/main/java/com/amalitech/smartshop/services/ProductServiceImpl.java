@@ -10,17 +10,20 @@ import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.CategoryRepository;
-import com.amalitech.smartshop.interfaces.InventoryRepository;
-import com.amalitech.smartshop.interfaces.ProductRepository;
 import com.amalitech.smartshop.interfaces.ProductService;
 import com.amalitech.smartshop.mappers.ProductMapper;
+import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -33,10 +36,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     
-    private final ProductRepository productRepository;
+    private final ProductJpaRepository productRepository;
     private final ProductMapper productMapper;
-    private final CategoryRepository categoryRepository;
-    private final InventoryRepository inventoryRepository;
+    private final CategoryJpaRepository categoryRepository;
+    private final InventoryJpaRepository inventoryRepository;
     private final CacheManager cacheManager;
 
     @Override
@@ -185,6 +188,29 @@ public class ProductServiceImpl implements ProductService {
             response.setQuantity(quantity);
             return response;
         });
+    }
+
+    @Override
+    public Page<ProductResponseDTO> searchProducts(String search, Long categoryId, Double minPrice, Double maxPrice, Boolean inStock, Pageable pageable) {
+        // I search and filter products based on the given criteria using JPA Specifications
+        log.info("Searching products with search={}, categoryId={}, minPrice={}, maxPrice={}, inStock={}", 
+                search, categoryId, minPrice, maxPrice, inStock);
+        
+        // Build specification from search parameters
+        Specification<Product> spec = ProductSpecification.buildSpecification(
+                search,
+                categoryId,
+                null, // categoryName
+                minPrice != null ? BigDecimal.valueOf(minPrice) : null,
+                maxPrice != null ? BigDecimal.valueOf(maxPrice) : null,
+                null, // vendorId
+                null, // featured
+                null, // active
+                inStock
+        );
+        
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+        return mapProductPageToResponse(productPage);
     }
 
     private void validateProductNameUniqueness(Product existingProduct, String newName) {

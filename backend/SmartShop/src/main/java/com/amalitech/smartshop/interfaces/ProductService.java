@@ -81,4 +81,17 @@ public interface ProductService {
      * @param id the product ID to delete
      */
     void deleteProduct(Long id);
+
+    /**
+     * Search and filter products with multiple criteria.
+     *
+     * @param search search term for name and description
+     * @param categoryId filter by category ID
+     * @param minPrice minimum price filter
+     * @param maxPrice maximum price filter
+     * @param inStock filter by availability
+     * @param pageable pagination information
+     * @return a page of product responses matching the criteria
+     */
+    Page<ProductResponseDTO> searchProducts(String search, Long categoryId, Double minPrice, Double maxPrice, Boolean inStock, Pageable pageable);
 }

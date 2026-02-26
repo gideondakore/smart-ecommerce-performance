@@ -10,12 +10,12 @@ import com.amalitech.smartshop.entities.Order;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.OrderItemRepository;
-import com.amalitech.smartshop.interfaces.OrderRepository;
-import com.amalitech.smartshop.interfaces.UserRepository;
 import com.amalitech.smartshop.interfaces.UserService;
 import com.amalitech.smartshop.interfaces.SessionService;
 import com.amalitech.smartshop.mappers.UserMapper;
+import com.amalitech.smartshop.repositories.jpa.OrderItemJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +36,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private final UserMapper userMapper;
     private final CacheManager cacheManager;
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
+    private final OrderJpaRepository orderRepository;
+    private final OrderItemJpaRepository orderItemRepository;
 
     private final SessionService sessionService;
 
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
         if (user.getLastName() != null) user.setLastName(capitalize(user.getLastName()));
         if (user.getEmail() != null) user.setEmail(user.getEmail().toLowerCase());
 
-        User updatedUser = userRepository.update(user);
+        User updatedUser = userRepository.save(user);
 
         invalidateUserCache(id, oldEmail, userDTO.getEmail());
 

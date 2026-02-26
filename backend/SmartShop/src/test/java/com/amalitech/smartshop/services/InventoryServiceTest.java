@@ -9,8 +9,8 @@ import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.InventoryMapper;
 import com.amalitech.smartshop.cache.CacheManager;
-import com.amalitech.smartshop.interfaces.InventoryRepository;
-import com.amalitech.smartshop.interfaces.ProductRepository;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,10 +26,10 @@ class InventoryServiceTest {
     private InventoryServiceImpl inventoryService;
 
     @Mock
-    private InventoryRepository inventoryRepository;
+    private InventoryJpaRepository inventoryRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private ProductJpaRepository productRepository;
 
     @Mock
     private InventoryMapper inventoryMapper;

@@ -3,8 +3,8 @@ package com.amalitech.smartshop;
 import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.enums.UserRole;
-import com.amalitech.smartshop.interfaces.CategoryRepository;
-import com.amalitech.smartshop.interfaces.UserRepository;
+import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SeedData implements CommandLineRunner {
 
-    private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
+    private final UserJpaRepository userRepository;
+    private final CategoryJpaRepository categoryRepository;
 
     @Override
     public void run(String... args) throws Exception {

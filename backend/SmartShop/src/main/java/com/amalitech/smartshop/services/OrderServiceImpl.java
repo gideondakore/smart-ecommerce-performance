@@ -13,13 +13,19 @@ import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.enums.OrderStatus;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.*;
+import com.amalitech.smartshop.interfaces.OrderService;
 import com.amalitech.smartshop.mappers.OrderMapper;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderItemJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -36,17 +42,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
-    private final InventoryRepository inventoryRepository;
+    private final OrderJpaRepository orderRepository;
+    private final OrderItemJpaRepository orderItemRepository;
+    private final ProductJpaRepository productRepository;
+    private final UserJpaRepository userRepository;
+    private final InventoryJpaRepository inventoryRepository;
     private final OrderMapper orderMapper;
     private final CacheManager cacheManager;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public OrderResponseDTO createOrder(AddOrderDTO addOrderDTO) {
+        // I create an order and deduct inventory quantities within a single transaction
+        // The transaction rolls back automatically on any exception
         log.info("Creating order for user: {}", addOrderDTO.getUserId());
         
         userRepository.findById(addOrderDTO.getUserId())
@@ -123,9 +131,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public OrderResponseDTO updateOrderStatus(Long id, UpdateOrderDTO updateOrderDTO) {
-
+        // I update the order status within a transaction
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + id));
 
@@ -143,8 +151,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
+        // I delete an order and its items within a transaction
         log.info("Deleting order: {}", id);
         
         Order order = orderRepository.findById(id)
@@ -177,11 +186,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Inventory validateAndReserveInventory(Product product, int requestedQuantity) {
+        // I validate inventory availability and reserve the requested quantity
         Inventory inventory = inventoryRepository.findByProductId(product.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Product '" + product.getName() + "' is out of stock"));
 
         if (inventory.getQuantity() < requestedQuantity) {
-            throw new IllegalArgumentException("Product '" + product.getName() + "' is out of stock");
+            throw new IllegalArgumentException("Insufficient stock for product '" + product.getName() + "'. Available: " + inventory.getQuantity() + ", Requested: " + requestedQuantity);
         }
 
         inventory.setQuantity(inventory.getQuantity() - requestedQuantity);

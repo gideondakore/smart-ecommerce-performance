@@ -8,11 +8,11 @@ import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.CategoryRepository;
 import com.amalitech.smartshop.interfaces.CategoryService;
-import com.amalitech.smartshop.interfaces.InventoryRepository;
-import com.amalitech.smartshop.interfaces.ProductRepository;
 import com.amalitech.smartshop.mappers.CategoryMapper;
+import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,11 +30,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     
-    private final CategoryRepository categoryRepository;
+    private final CategoryJpaRepository categoryRepository;
     private final CategoryMapper categoryMapper;
     private final CacheManager cacheManager;
-    private final ProductRepository productRepository;
-    private final InventoryRepository inventoryRepository;
+    private final ProductJpaRepository productRepository;
+    private final InventoryJpaRepository inventoryRepository;
 
     @Override
     public CategoryResponseDTO addCategory(AddCategoryDTO addCategoryDTO) {

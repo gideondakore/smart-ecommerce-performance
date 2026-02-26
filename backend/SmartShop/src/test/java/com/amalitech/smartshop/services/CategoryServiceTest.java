@@ -9,9 +9,9 @@ import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.CategoryMapper;
 import com.amalitech.smartshop.cache.CacheManager;
-import com.amalitech.smartshop.interfaces.CategoryRepository;
-import com.amalitech.smartshop.interfaces.ProductRepository;
-import com.amalitech.smartshop.interfaces.InventoryRepository;
+import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ class CategoryServiceTest {
     private CategoryServiceImpl categoryService;
 
     @Mock
-    private CategoryRepository categoryRepository;
+    private CategoryJpaRepository categoryRepository;
 
     @Mock
     private CategoryMapper categoryMapper;
@@ -36,10 +36,10 @@ class CategoryServiceTest {
     private CacheManager cacheManager;
 
     @Mock
-    private ProductRepository productRepository;
+    private ProductJpaRepository productRepository;
 
     @Mock
-    private InventoryRepository inventoryRepository;
+    private InventoryJpaRepository inventoryRepository;
 
     @BeforeEach
     void setUp() {

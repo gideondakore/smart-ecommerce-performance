@@ -8,10 +8,10 @@ import com.amalitech.smartshop.entities.Inventory;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.InventoryRepository;
 import com.amalitech.smartshop.interfaces.InventoryService;
-import com.amalitech.smartshop.interfaces.ProductRepository;
 import com.amalitech.smartshop.mappers.InventoryMapper;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
     
-    private final InventoryRepository inventoryRepository;
-    private final ProductRepository productRepository;
+    private final InventoryJpaRepository inventoryRepository;
+    private final ProductJpaRepository productRepository;
     private final InventoryMapper inventoryMapper;
     private final CacheManager cacheManager;
 

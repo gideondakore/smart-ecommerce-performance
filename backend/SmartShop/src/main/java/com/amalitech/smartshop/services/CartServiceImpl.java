@@ -11,7 +11,11 @@ import com.amalitech.smartshop.entities.CartItem;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
-import com.amalitech.smartshop.interfaces.*;
+import com.amalitech.smartshop.interfaces.CartService;
+import com.amalitech.smartshop.interfaces.OrderService;
+import com.amalitech.smartshop.repositories.jpa.CartItemJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.CartJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,9 +29,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
     
-    private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
-    private final ProductRepository productRepository;
+    private final CartJpaRepository cartRepository;
+    private final CartItemJpaRepository cartItemRepository;
+    private final ProductJpaRepository productRepository;
     private final OrderService orderService;
 
     @Override

@@ -4,7 +4,7 @@ import com.amalitech.smartshop.entities.Session;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
 import com.amalitech.smartshop.interfaces.SessionService;
-import com.amalitech.smartshop.interfaces.UserRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final SessionService sessionService;
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, Object handler) throws Exception {

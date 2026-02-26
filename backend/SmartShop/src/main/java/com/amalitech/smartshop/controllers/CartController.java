@@ -40,10 +40,11 @@ public class CartController {
 
     @Operation(summary = "Add item to cart")
     @RequiresRole(UserRole.CUSTOMER)
-    @PostMapping("/add")
+    @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponseDTO>> addItemToCart(
             @Valid @RequestBody AddCartItemDTO request,
             HttpServletRequest httpRequest) {
+        // I add an item to the user's cart
         Long userId = (Long) httpRequest.getAttribute("authUserId");
         CartResponseDTO cart = cartService.addItemToCart(request, userId);
         ApiResponse<CartResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Item added to cart successfully", cart);

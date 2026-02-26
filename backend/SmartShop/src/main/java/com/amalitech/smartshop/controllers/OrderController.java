@@ -118,10 +118,11 @@ public class OrderController {
 
     @Operation(summary = "Update order status")
     @RequiresRole(UserRole.ADMIN)
-    @PutMapping("/status/{id}")
+    @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateOrderDTO request) {
+        // I update the order status for the given order ID
         OrderResponseDTO updatedOrder = orderService.updateOrderStatus(id, request);
         ApiResponse<OrderResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Order status updated successfully", updatedOrder);
         return ResponseEntity.ok(apiResponse);

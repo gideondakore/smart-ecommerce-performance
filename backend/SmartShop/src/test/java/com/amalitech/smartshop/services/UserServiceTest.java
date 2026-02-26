@@ -10,9 +10,9 @@ import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.UserMapper;
 import com.amalitech.smartshop.cache.CacheManager;
-import com.amalitech.smartshop.interfaces.UserRepository;
-import com.amalitech.smartshop.interfaces.OrderRepository;
-import com.amalitech.smartshop.interfaces.OrderItemRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderItemJpaRepository;
 import com.amalitech.smartshop.interfaces.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class UserServiceTest {
     private UserServiceImpl userService;
 
     @Mock
-    private UserRepository userRepository;
+    private UserJpaRepository userRepository;
 
     @Mock
     private UserMapper userMapper;
@@ -40,10 +40,10 @@ class UserServiceTest {
     private CacheManager cacheManager;
 
     @Mock
-    private OrderRepository orderRepository;
+    private OrderJpaRepository orderRepository;
 
     @Mock
-    private OrderItemRepository orderItemRepository;
+    private OrderItemJpaRepository orderItemRepository;
 
     @Mock
     private SessionService sessionService;

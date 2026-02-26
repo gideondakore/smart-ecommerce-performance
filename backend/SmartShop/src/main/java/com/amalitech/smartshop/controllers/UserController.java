@@ -88,8 +88,9 @@ public class UserController {
     }
 
     @Operation(summary = "Update authenticated user's profile")
-    @PutMapping("/updateProfile")
+    @PutMapping("/profile")
     public ResponseEntity<ApiResponse<UserSummaryDTO>> updateProfile(HttpServletRequest request, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
+        // I update the authenticated user's profile
         Long userId = (Long) request.getAttribute("authUserId");
         UserSummaryDTO updatedUser = userService.updateUser(userId, updateUserDTO);
         ApiResponse<UserSummaryDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "User profile updated successfully", updatedUser);

@@ -8,10 +8,10 @@ import com.amalitech.smartshop.entities.Review;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
-import com.amalitech.smartshop.interfaces.ProductRepository;
-import com.amalitech.smartshop.interfaces.ReviewRepository;
 import com.amalitech.smartshop.interfaces.ReviewService;
-import com.amalitech.smartshop.interfaces.UserRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ReviewJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
     
-    private final ReviewRepository reviewRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final ReviewJpaRepository reviewRepository;
+    private final ProductJpaRepository productRepository;
+    private final UserJpaRepository userRepository;
 
     @Override
     public ReviewResponseDTO addReview(AddReviewDTO request, Long userId) {

@@ -7,7 +7,7 @@ import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.entities.*;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
-import com.amalitech.smartshop.interfaces.*;
+import com.amalitech.smartshop.repositories.jpa.*;
 import com.amalitech.smartshop.enums.OrderStatus;
 import com.amalitech.smartshop.mappers.OrderMapper;
 import com.amalitech.smartshop.cache.CacheManager;
@@ -28,19 +28,19 @@ class OrderServiceTest {
     private OrderServiceImpl orderService;
 
     @Mock
-    private OrderRepository orderRepository;
+    private OrderJpaRepository orderRepository;
 
     @Mock
-    private OrderItemRepository orderItemRepository;
+    private OrderItemJpaRepository orderItemRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private ProductJpaRepository productRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserJpaRepository userRepository;
 
     @Mock
-    private InventoryRepository inventoryRepository;
+    private InventoryJpaRepository inventoryRepository;
 
     @Mock
     private OrderMapper orderMapper;

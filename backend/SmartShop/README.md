@@ -4,7 +4,7 @@ SmartShop is a robust, high-performance e-commerce backend built with **Java 25*
 
 The project emphasizes performance and scalability, featuring custom-built sorting algorithms, an AOP-based monitoring system, and a lightweight in-memory caching mechanism.
 
-## 🚀 Key Features
+## Key Features
 
 - **Hybrid API Architecture**: Full support for both **REST** and **GraphQL** endpoints.
 - **Advanced Security**:
@@ -22,7 +22,7 @@ The project emphasizes performance and scalability, featuring custom-built sorti
 - **Documentation**: Integrated **Swagger/OpenAPI** for REST API exploration and **GraphiQL** for GraphQL queries.
 - **Performance Report**: Comprehensive analytical comparison between REST and GraphQL endpoints (see `PERFORMANCE_REPORT.md`).
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Core**: Java 25, Spring Boot 4.0.1
 - **Data**: Spring Data JPA, PostgreSQL
@@ -31,7 +31,7 @@ The project emphasizes performance and scalability, featuring custom-built sorti
 - **Monitoring**: Spring AOP, Spring Boot Actuator
 - **Documentation**: Springdoc OpenAPI, GraphiQL
 
-## 🏗 Project Architecture
+## Project Architecture
 
 ### 1. Performance Monitoring (AOP)
 
@@ -54,7 +54,7 @@ A custom security layer is implemented via `AuthInterceptor` and `RoleIntercepto
 - **Authentication**: Uses a Bearer token format (`Bearer username-id`).
 - **Authorization**: Custom `@RequiresRole` annotation allows fine-grained access control at the controller level.
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 src/main/java/com/amalitech/smartshop/
@@ -74,7 +74,7 @@ src/main/java/com/amalitech/smartshop/
 └── utils/            # Sorting Utilities (QuickSort, MergeSort)
 ```
 
-## 🚦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -104,43 +104,194 @@ DATABASE_PASSWORD=your_password
    mvn spring-boot:run
    ```
 
-## 📖 API Documentation
+## API Documentation
 
 ### REST API
 
 - **Swagger UI**: `http://localhost:8080/swagger-ui/index.html`
-- **Core Endpoints**:
-  - `POST /api/users/register`: Register a new user.
-  - `POST /api/users/login`: Login and receive a token.
-  - `GET /api/products`: List products (supports custom sorting).
-  - `GET /api/performance/db-metrics`: View DB performance stats (Admin).
+
+#### Standard REST Endpoints
+
+All endpoints follow RESTful conventions:
+
+- `POST /resource` - Create
+- `GET /resource` - List all
+- `GET /resource/{id}` - Get by ID
+- `PUT /resource/{id}` - Update
+- `DELETE /resource/{id}` - Delete
+
+#### Categories
+
+| Method | Endpoint               | Description         | Auth Required |
+| ------ | ---------------------- | ------------------- | ------------- |
+| POST   | `/api/categories`      | Create a category   | ADMIN         |
+| GET    | `/api/categories`      | List all categories | No            |
+| GET    | `/api/categories/{id}` | Get category by ID  | No            |
+| PUT    | `/api/categories/{id}` | Update a category   | ADMIN         |
+| DELETE | `/api/categories/{id}` | Delete a category   | ADMIN         |
+
+#### Products
+
+| Method | Endpoint             | Description          | Auth Required |
+| ------ | -------------------- | -------------------- | ------------- |
+| POST   | `/api/products`      | Create a product     | ADMIN, VENDOR |
+| GET    | `/api/products`      | List/search products | No            |
+| GET    | `/api/products/{id}` | Get product by ID    | No            |
+| PUT    | `/api/products/{id}` | Update a product     | ADMIN, VENDOR |
+| DELETE | `/api/products/{id}` | Delete a product     | ADMIN, VENDOR |
+
+**Product Search Parameters:**
+
+- `search` - Search by name or description
+- `categoryId` - Filter by category
+- `minPrice` - Minimum price filter
+- `maxPrice` - Maximum price filter
+- `inStock` - Filter products with available stock
+- `sortBy` - Sort field (NAME, PRICE, QUANTITY)
+- `ascending` - Sort direction (true/false)
+- `page`, `size` - Pagination parameters
+
+Example: `GET /api/products?search=book&minPrice=10&maxPrice=50&inStock=true&page=0&size=10`
+
+#### Orders
+
+| Method | Endpoint                  | Description         | Auth Required   |
+| ------ | ------------------------- | ------------------- | --------------- |
+| POST   | `/api/orders`             | Create an order     | CUSTOMER, ADMIN |
+| GET    | `/api/orders`             | List all orders     | ADMIN, VENDOR   |
+| GET    | `/api/orders/user`        | Get user's orders   | CUSTOMER, ADMIN |
+| GET    | `/api/orders/{id}`        | Get order by ID     | CUSTOMER        |
+| PUT    | `/api/orders/{id}/status` | Update order status | ADMIN           |
+| DELETE | `/api/orders/{id}`        | Delete an order     | ADMIN           |
+
+**Order Processing:**
+
+- Inventory is automatically deducted when an order is placed
+- Transactions ensure atomicity - if inventory update fails, the order is rolled back
+- Insufficient stock returns an error with available quantity
+
+#### Users
+
+| Method | Endpoint              | Description                 | Auth Required |
+| ------ | --------------------- | --------------------------- | ------------- |
+| POST   | `/api/users/register` | Register a new user         | No            |
+| POST   | `/api/users/login`    | Login and get token         | No            |
+| GET    | `/api/users`          | List all users              | ADMIN         |
+| GET    | `/api/users/profile`  | Get current user profile    | Yes           |
+| PUT    | `/api/users/profile`  | Update current user profile | Yes           |
+| GET    | `/api/users/{id}`     | Get user by ID              | Yes           |
+| PUT    | `/api/users/{id}`     | Update user                 | ADMIN         |
+| DELETE | `/api/users/{id}`     | Delete user                 | ADMIN         |
+
+#### Cart
+
+| Method | Endpoint                  | Description      | Auth Required |
+| ------ | ------------------------- | ---------------- | ------------- |
+| GET    | `/api/cart`               | Get user's cart  | CUSTOMER      |
+| POST   | `/api/cart/items`         | Add item to cart | CUSTOMER      |
+| PUT    | `/api/cart/item/{itemId}` | Update cart item | CUSTOMER      |
+| DELETE | `/api/cart/item/{itemId}` | Remove cart item | CUSTOMER      |
+| DELETE | `/api/cart/clear`         | Clear cart       | CUSTOMER      |
+| POST   | `/api/cart/checkout`      | Checkout cart    | CUSTOMER      |
+
+#### Inventory
+
+| Method | Endpoint                             | Description              | Auth Required |
+| ------ | ------------------------------------ | ------------------------ | ------------- |
+| POST   | `/api/inventory`                     | Create inventory record  | ADMIN         |
+| GET    | `/api/inventory`                     | List all inventory       | ADMIN         |
+| GET    | `/api/inventory/{id}`                | Get inventory by ID      | ADMIN         |
+| GET    | `/api/inventory/product/{productId}` | Get inventory by product | ADMIN         |
+| PUT    | `/api/inventory/{id}`                | Update inventory         | ADMIN         |
+| PATCH  | `/api/inventory/{id}`                | Adjust quantity          | ADMIN         |
+| DELETE | `/api/inventory/{id}`                | Delete inventory         | ADMIN         |
 
 ### GraphQL
 
 - **GraphiQL**: `http://localhost:8080/graphiql`
-- **Example Query**:
-  ```graphql
-  query {
-    allProducts {
-      name
-      price
-      categoryName
-    }
-  }
-  ```
+- **Endpoint**: `http://localhost:8080/graphql`
 
-## 🔐 Security Roles
+**Example Queries:**
+
+```graphql
+# Get all products
+query {
+  allProducts {
+    name
+    price
+    categoryName
+  }
+}
+
+# Get product by ID
+query {
+  productById(id: 1) {
+    name
+    price
+    quantity
+  }
+}
+
+# Get all categories
+query {
+  allCategories {
+    id
+    name
+    description
+  }
+}
+```
+
+**Example Mutations:**
+
+```graphql
+# Login
+mutation {
+  login(input: { email: "user@example.com", password: "password" }) {
+    token
+    email
+    role
+  }
+}
+
+# Create order
+mutation {
+  createOrder(input: { userId: 1, items: [{ productId: 1, quantity: 2 }] }) {
+    id
+    totalAmount
+    status
+  }
+}
+```
+
+## Transaction Management
+
+The application uses Spring's `@Transactional` annotation with proper configuration:
+
+- **Propagation**: REQUIRED - joins existing transaction or creates new one
+- **Rollback**: Automatic rollback on any Exception
+- **Isolation**: Default READ_COMMITTED
+
+Order creation is transactional:
+
+1. Validates product availability
+2. Checks and reserves inventory
+3. Creates order record
+4. If any step fails, entire transaction rolls back
+
+## Security Roles
 
 | Role         | Permissions                                           |
 | :----------- | :---------------------------------------------------- |
 | **ADMIN**    | Full access to all resources and performance metrics. |
-| **SELLER**   | Manage products and inventory.                        |
+| **VENDOR**   | Manage own products and inventory.                    |
 | **CUSTOMER** | Browse products and manage personal orders.           |
 
 ---
 
-## mvn spring-boot:run -Dspring-boot.run.profiles=dev
+## Running the Application
 
+```bash
+# Development mode
 cd backend/SmartShop && mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-_Note: This documentation focuses on the Java backend. For frontend documentation, please refer to the `/frontend` directory._
+```

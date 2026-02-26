@@ -32,19 +32,21 @@ public class CategoryController {
 
     @Operation(summary = "Add a new category")
     @RequiresRole(UserRole.ADMIN)
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> addCategory(@Valid @RequestBody AddCategoryDTO request) {
+        // I create a new category and return the response
         CategoryResponseDTO category = categoryService.addCategory(request);
-        ApiResponse<CategoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Category added successfully", category);
-        return ResponseEntity.ok(apiResponse);
+        ApiResponse<CategoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.CREATED.value(), "Category added successfully", category);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @Operation(summary = "Get all categories")
-    @GetMapping("/public/all")
+    @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<CategoryResponseDTO>>> getAllCategories(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
+        // I retrieve all categories with pagination
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         Page<CategoryResponseDTO> categories = categoryService.getAllCategories(pageable);
         PagedResponse<CategoryResponseDTO> pagedResponse = new PagedResponse<>(
@@ -68,10 +70,11 @@ public class CategoryController {
 
     @Operation(summary = "Update a category")
     @RequiresRole(UserRole.ADMIN)
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCategoryDTO request) {
+        // I update the category with the given ID
         CategoryResponseDTO updatedCategory = categoryService.updateCategory(id, request);
         ApiResponse<CategoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Category updated successfully", updatedCategory);
         return ResponseEntity.ok(apiResponse);
