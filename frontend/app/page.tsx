@@ -21,19 +21,17 @@ export default function Home() {
 
   useEffect(() => {
     productApi
-      .getAll({ page, size: 12, categoryId: selectedCategory })
+      .getAll({ 
+        page, 
+        size: 12, 
+        categoryId: selectedCategory,
+        search: searchQuery || undefined
+      })
       .then((res) => {
         setProducts(res.data.content);
         setTotalPages(res.data.totalPages);
       });
-  }, [page, selectedCategory]);
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description &&
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())),
-  );
+  }, [page, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -82,7 +80,7 @@ export default function Home() {
                       href="/cart"
                       className="text-blue-600 hover:underline"
                     >
-                      🛒 Cart
+                      Cart
                     </Link>
                     <Link
                       href="/dashboard/customer"
@@ -151,7 +149,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <div
               key={product.id}
               className="bg-white rounded-lg shadow p-4 relative"

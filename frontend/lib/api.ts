@@ -63,7 +63,6 @@ const fetchApi = async <T>(
   }
 };
 
-// User APIs
 export const userApi = {
   register: (data: {
     firstName: string;
@@ -113,7 +112,6 @@ export const userApi = {
     fetchApi<void>(`/users/${id}`, { method: "DELETE" }),
 };
 
-// Category APIs
 export const categoryApi = {
   add: (data: { name: string; description?: string }) =>
     fetchApi<any>("/categories", {
@@ -145,13 +143,13 @@ export const categoryApi = {
     fetchApi<void>(`/categories/${id}`, { method: "DELETE" }),
 };
 
-// Product APIs
 export const productApi = {
   add: (data: {
     name: string;
     description?: string;
     price: number;
     categoryId: number;
+    sku: string;
     imageUrl?: string;
   }) =>
     fetchApi<any>("/products", {
@@ -235,7 +233,6 @@ export const productApi = {
     fetchApi<void>(`/products/${id}`, { method: "DELETE" }),
 };
 
-// Order APIs
 export const orderApi = {
   create: (data: { items: { productId: number; quantity: number }[] }) =>
     fetchApi<any>("/orders", {
@@ -271,7 +268,6 @@ export const orderApi = {
   delete: (id: number) => fetchApi<void>(`/orders/${id}`, { method: "DELETE" }),
 };
 
-// Inventory APIs
 export const inventoryApi = {
   add: (data: { productId: number; quantity: number; location: string }) =>
     fetchApi<any>("/inventory", {
@@ -285,7 +281,6 @@ export const inventoryApi = {
     fetchApi<any>(`/inventory/product/${productId}`),
   update: (id: number, data: { quantity?: number; location?: string }) =>
     fetchApi<any>(`/inventory/${id}`, {
-      // This update only the location and quantity of the inventory
       method: "PUT",
       body: JSON.stringify(data),
     }),
@@ -297,7 +292,6 @@ export const inventoryApi = {
     fetchApi<void>(`/inventory/${id}`, { method: "DELETE" }),
 };
 
-// Review APIs
 export const reviewApi = {
   add: (data: { productId: number; rating: number; comment?: string }) =>
     fetchApi<any>("/reviews", {
@@ -322,7 +316,6 @@ export const reviewApi = {
     fetchApi<void>(`/reviews/${id}`, { method: "DELETE" }),
 };
 
-// Cart APIs
 export const cartApi = {
   get: () => fetchApi<any>("/cart"),
   addItem: (data: { productId: number; quantity: number }) =>
