@@ -1,9 +1,13 @@
 package com.amalitech.smartshop;
 
 import com.amalitech.smartshop.entities.Category;
+import com.amalitech.smartshop.entities.Inventory;
+import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +27,14 @@ public class SeedData implements CommandLineRunner {
 
     private final UserJpaRepository userRepository;
     private final CategoryJpaRepository categoryRepository;
+    private final ProductJpaRepository productRepository;
+    private final InventoryJpaRepository inventoryRepository;
 
     @Override
     public void run(String... args) throws Exception {
         seedUsers();
         seedCategories();
+        seedProducts();
     }
 
     private void seedUsers() {
@@ -174,6 +181,118 @@ public class SeedData implements CommandLineRunner {
             log.info("Seeded {} categories successfully", categoryRepository.count());
         } else {
             log.info("Categories already exist. Skipping seed data.");
+        }
+    }
+
+    private void seedProducts() {
+        if (productRepository.count() == 0) {
+            log.info("Seeding products...");
+
+            Long vendorId = userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == UserRole.VENDOR)
+                    .findFirst()
+                    .map(User::getId)
+                    .orElse(null);
+
+            Product laptop = Product.builder()
+                    .name("Laptop Pro 15")
+                    .description("High-performance laptop with 16GB RAM")
+                    .categoryId(1L)
+                    .sku("LAP-001")
+                    .price(1299.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(laptop);
+            inventoryRepository.save(Inventory.builder().productId(laptop.getId()).quantity(50).location("Warehouse A").build());
+
+            Product mouse = Product.builder()
+                    .name("Wireless Mouse")
+                    .description("Ergonomic wireless mouse")
+                    .categoryId(1L)
+                    .sku("MOU-001")
+                    .price(29.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(mouse);
+            inventoryRepository.save(Inventory.builder().productId(mouse.getId()).quantity(100).location("Warehouse A").build());
+
+            Product cable = Product.builder()
+                    .name("USB-C Cable")
+                    .description("Fast charging USB-C cable")
+                    .categoryId(1L)
+                    .sku("CAB-001")
+                    .price(12.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(cable);
+            inventoryRepository.save(Inventory.builder().productId(cable.getId()).quantity(200).location("Warehouse B").build());
+
+            Product tshirt = Product.builder()
+                    .name("T-Shirt Blue")
+                    .description("Cotton blue t-shirt")
+                    .categoryId(2L)
+                    .sku("TSH-001")
+                    .price(19.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(tshirt);
+            inventoryRepository.save(Inventory.builder().productId(tshirt.getId()).quantity(75).location("Warehouse C").build());
+
+            Product jeans = Product.builder()
+                    .name("Jeans Classic")
+                    .description("Classic fit jeans")
+                    .categoryId(2L)
+                    .sku("JEA-001")
+                    .price(49.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(jeans);
+            inventoryRepository.save(Inventory.builder().productId(jeans.getId()).quantity(60).location("Warehouse C").build());
+
+            Product hose = Product.builder()
+                    .name("Garden Hose")
+                    .description("50ft expandable garden hose")
+                    .categoryId(3L)
+                    .sku("HOS-001")
+                    .price(34.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(hose);
+            inventoryRepository.save(Inventory.builder().productId(hose.getId()).quantity(40).location("Warehouse B").build());
+
+            Product basketball = Product.builder()
+                    .name("Basketball")
+                    .description("Official size basketball")
+                    .categoryId(4L)
+                    .sku("BAS-001")
+                    .price(24.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(basketball);
+            inventoryRepository.save(Inventory.builder().productId(basketball.getId()).quantity(80).location("Warehouse A").build());
+
+            Product yogaMat = Product.builder()
+                    .name("Yoga Mat")
+                    .description("Non-slip yoga mat")
+                    .categoryId(4L)
+                    .sku("YOG-001")
+                    .price(29.99)
+                    .available(true)
+                    .vendorId(vendorId)
+                    .build();
+            productRepository.save(yogaMat);
+            inventoryRepository.save(Inventory.builder().productId(yogaMat.getId()).quantity(90).location("Warehouse C").build());
+
+            log.info("Seeded {} products successfully", productRepository.count());
+        } else {
+            log.info("Products already exist. Skipping seed data.");
         }
     }
 }

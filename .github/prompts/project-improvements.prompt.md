@@ -1,11 +1,13 @@
 # Smart E-Commerce System - Project Improvements
 
 ## Project Overview
+
 Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data JPA) and Next.js frontend. PostgreSQL database with MCP server integration available.
 
 ## Critical Requirements
 
 ### 1. API Endpoint Standardization
+
 - Fix non-RESTful endpoints (e.g., `/categories/update/{id}` should be `/categories/{id}` with PUT)
 - Remove redundant path segments like `/add`, `/update` from URLs
 - Follow REST conventions: POST `/resource`, GET `/resource`, GET `/resource/{id}`, PUT `/resource/{id}`, DELETE `/resource/{id}`
@@ -13,6 +15,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - Ensure all backend endpoints are actually used by the frontend
 
 ### 2. GraphQL Implementation Fix
+
 - Fix broken GraphQL implementation in both backend and frontend
 - Ensure GraphQL endpoint at `/graphql` is functional
 - Fix queries in `/frontend/lib/graphql.ts`
@@ -20,6 +23,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - Verify authentication works with GraphQL requests
 
 ### 3. Inventory Management
+
 - Implement product quantity deduction when order is placed
 - Add transaction management to ensure atomicity
 - Handle insufficient stock scenarios with proper error messages
@@ -27,6 +31,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - Rollback order if inventory update fails
 
 ### 4. Backend Search and Filtering
+
 - Move all filtering and searching logic from frontend to backend
 - Implement search parameters for products (name, description, price range)
 - Add filtering by category, price range, availability
@@ -35,6 +40,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - Return filtered results with pagination
 
 ### 5. Search Parameters Implementation
+
 - Add `search` query parameter to product endpoints
 - Implement fuzzy search on product name and description
 - Add price range filters: `minPrice`, `maxPrice`
@@ -45,18 +51,21 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 ## Code Style Guidelines
 
 ### General Rules
+
 - NO emojis anywhere in code, comments, or documentation
 - Write comments in first-person perspective (e.g., "I am handling...", "I validate...")
 - Write minimal, focused code - avoid verbose implementations
 - Only write code that directly contributes to the solution
 
 ### Git Workflow
+
 - Make incremental commits after each logical change
 - Commit messages format: `feat: description` or `fix: description` or `refactor: description`
 - Commit after fixing each endpoint, implementing each feature
 - Do not bundle unrelated changes in single commit
 
 ### Documentation
+
 - Maintain ONE comprehensive documentation file
 - Update existing documentation instead of creating new files
 - Document in `/backend/SmartShop/README.md`
@@ -65,16 +74,17 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 ## Implementation Checklist
 
 ### Phase 1: Endpoint Standardization
+
 - [ ] Audit all controllers for non-standard endpoints
 - [ ] Refactor CategoryController endpoints
 - [ ] Refactor ProductController endpoints
 - [ ] Refactor OrderController endpoints
 - [ ] Refactor UserController endpoints
 - [ ] Update frontend api.ts to use corrected endpoints
-- [ ] Test all endpoints with Postman/frontend
 - [ ] Commit: `refactor: standardize REST endpoints`
 
 ### Phase 2: GraphQL Fix
+
 - [ ] Review GraphQL schema and resolvers
 - [ ] Fix authentication in GraphQL context
 - [ ] Test all queries and mutations
@@ -83,6 +93,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - [ ] Commit: `fix: repair GraphQL implementation`
 
 ### Phase 3: Inventory Deduction
+
 - [ ] Add inventory check before order placement
 - [ ] Implement quantity deduction in order service
 - [ ] Add @Transactional with proper propagation
@@ -92,6 +103,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - [ ] Commit: `feat: implement inventory deduction on order placement`
 
 ### Phase 4: Backend Search & Filtering
+
 - [ ] Create ProductSpecification for dynamic queries
 - [ ] Add search parameter to ProductRepository
 - [ ] Implement filtering in ProductService
@@ -102,6 +114,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 - [ ] Commit: `feat: implement backend search and filtering`
 
 ### Phase 5: Testing & Documentation
+
 - [ ] Test all endpoints with PostgreSQL MCP server
 - [ ] Verify frontend integration for all features
 - [ ] Test edge cases and error scenarios
@@ -111,6 +124,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 ## Technical Implementation Details
 
 ### REST Endpoint Standards
+
 ```java
 // CORRECT
 @PostMapping
@@ -126,6 +140,7 @@ Full-stack e-commerce application with Spring Boot backend (Java 21, Spring Data
 ```
 
 ### Inventory Deduction Pattern
+
 ```java
 @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 public OrderResponseDTO createOrder(CreateOrderDTO request) {
@@ -137,6 +152,7 @@ public OrderResponseDTO createOrder(CreateOrderDTO request) {
 ```
 
 ### Search & Filter Implementation
+
 ```java
 // I use Specification pattern for dynamic queries
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {}
@@ -148,6 +164,7 @@ if (categoryId != null) spec = spec.and(categoryEquals(categoryId));
 ```
 
 ### Frontend API Update Pattern
+
 ```typescript
 // BEFORE
 update: (id: number, data: any) =>
@@ -165,6 +182,7 @@ update: (id: number, data: any) =>
 ```
 
 ## Testing Requirements
+
 - Test each feature with actual database operations using PostgreSQL MCP
 - Verify frontend successfully calls all backend endpoints
 - Test error scenarios and edge cases
@@ -173,6 +191,7 @@ update: (id: number, data: any) =>
 - Confirm inventory deduction works correctly
 
 ## Success Criteria
+
 - All endpoints follow REST standards
 - Frontend successfully uses all backend endpoints
 - GraphQL queries and mutations work correctly

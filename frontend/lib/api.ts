@@ -51,6 +51,9 @@ const fetchApi = async <T>(
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401 && data.message?.includes("expired")) {
+        setAuthToken(null);
+      }
       throw new Error(data.message || `API Error: ${response.statusText}`);
     }
 
@@ -94,12 +97,12 @@ export const userApi = {
     }),
   getProfile: () => fetchApi<any>("/users/profile"),
   updateProfile: (data: any) =>
-    fetchApi<any>("/users/updateProfile", {
+    fetchApi<any>("/users/profile", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   getAllUsers: (page = 0, size = 10) =>
-    fetchApi<PagedResponse<any>>(`/users/all?page=${page}&size=${size}`),
+    fetchApi<PagedResponse<any>>(`/users?page=${page}&size=${size}`),
   getUserById: (id: number) => fetchApi<any>(`/users/${id}`),
   updateUser: (id: number, data: any) =>
     fetchApi<any>(`/users/${id}`, {
@@ -113,14 +116,12 @@ export const userApi = {
 // Category APIs
 export const categoryApi = {
   add: (data: { name: string; description?: string }) =>
-    fetchApi<any>("/categories/add", {
+    fetchApi<any>("/categories", {
       method: "POST",
       body: JSON.stringify(data),
     }),
   getAll: (page = 0, size = 10) =>
-    fetchApi<PagedResponse<any>>(
-      `/categories/public/all?page=${page}&size=${size}`,
-    ),
+    fetchApi<PagedResponse<any>>(`/categories?page=${page}&size=${size}`),
   getAllGraphQL: async () => {
     const query = `
       query {
@@ -136,7 +137,7 @@ export const categoryApi = {
   },
   getById: (id: number) => fetchApi<any>(`/categories/${id}`),
   update: (id: number, data: { name?: string; description?: string }) =>
-    fetchApi<any>(`/categories/update/${id}`, {
+    fetchApi<any>(`/categories/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
@@ -166,6 +167,10 @@ export const productApi = {
     page?: number;
     size?: number;
     categoryId?: number;
+    search?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
     sortBy?: string;
     ascending?: boolean;
     algorithm?: string;
@@ -177,6 +182,13 @@ export const productApi = {
       query.append("size", params.size.toString());
     if (params?.categoryId)
       query.append("categoryId", params.categoryId.toString());
+    if (params?.search) query.append("search", params.search);
+    if (params?.minPrice !== undefined)
+      query.append("minPrice", params.minPrice.toString());
+    if (params?.maxPrice !== undefined)
+      query.append("maxPrice", params.maxPrice.toString());
+    if (params?.inStock !== undefined)
+      query.append("inStock", params.inStock.toString());
     if (params?.sortBy) query.append("sortBy", params.sortBy);
     if (params?.ascending !== undefined)
       query.append("ascending", params.ascending.toString());
@@ -252,7 +264,7 @@ export const orderApi = {
     fetchApi<PagedResponse<any>>(`/orders/user?page=${page}&size=${size}`),
   getById: (id: number) => fetchApi<any>(`/orders/${id}`),
   updateStatus: (id: number, data: { status: string }) =>
-    fetchApi<any>(`/orders/status/${id}`, {
+    fetchApi<any>(`/orders/${id}/status`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
@@ -314,7 +326,10 @@ export const reviewApi = {
 export const cartApi = {
   get: () => fetchApi<any>("/cart"),
   addItem: (data: { productId: number; quantity: number }) =>
-    fetchApi<any>("/cart/add", { method: "POST", body: JSON.stringify(data) }),
+    fetchApi<any>("/cart/items", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   updateItem: (itemId: number, data: { quantity: number }) =>
     fetchApi<any>(`/cart/item/${itemId}`, {
       method: "PUT",
