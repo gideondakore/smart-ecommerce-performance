@@ -19,8 +19,9 @@ export default function ProductDetail() {
 
   useEffect(() => {
     const id = Number(params.id);
+    // Use GraphQL for simple product detail fetch
     productApi
-      .getById(id)
+      .getByIdGraphQL(id)
       .then((res) => setProduct(res.data))
       .catch((err) => setError(err.message));
 

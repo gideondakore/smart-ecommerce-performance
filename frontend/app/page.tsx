@@ -16,21 +16,34 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    categoryApi.getAll(0, 100).then((res) => setCategories(res.data.content));
+    // Use GraphQL for simple category list
+    categoryApi.getAllGraphQL().then((res) => setCategories(res.data.content));
   }, []);
 
   useEffect(() => {
-    productApi
-      .getAll({ 
-        page, 
-        size: 12, 
-        categoryId: selectedCategory,
-        search: searchQuery || undefined
-      })
-      .then((res) => {
-        setProducts(res.data.content);
-        setTotalPages(res.data.totalPages);
+    // Use GraphQL for simple listing, REST for filtering/search
+    const hasFilters = selectedCategory || searchQuery || page > 0;
+    
+    if (hasFilters) {
+      // Use REST API for complex queries with filters
+      productApi
+        .getAll({ 
+          page, 
+          size: 12, 
+          categoryId: selectedCategory,
+          search: searchQuery || undefined
+        })
+        .then((res) => {
+          setProducts(res.data.content);
+          setTotalPages(res.data.totalPages);
+        });
+    } else {
+      // Use GraphQL for simple initial load
+      productApi.getAllGraphQL().then((res) => {
+        setProducts(res.data.content.slice(0, 12));
+        setTotalPages(Math.ceil(res.data.content.length / 12));
       });
+    }
   }, [page, selectedCategory, searchQuery]);
 
   return (
