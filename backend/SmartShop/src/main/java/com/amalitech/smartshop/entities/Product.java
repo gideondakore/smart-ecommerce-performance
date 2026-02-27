@@ -11,8 +11,15 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 /**
- * I represent a product in the SmartShop e-commerce catalog.
+ * This represent a product in the SmartShop e-commerce catalog.
  */
+@NamedEntityGraph(
+        name = "Product.withInventoryAndCategory",
+        attributeNodes = {
+                @NamedAttributeNode("inventory"),
+                @NamedAttributeNode("category")
+        }
+)
 @Entity
 @Table(name = "products")
 @Data

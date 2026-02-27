@@ -5,7 +5,6 @@ import com.amalitech.smartshop.dtos.requests.AddProductDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateProductDTO;
 import com.amalitech.smartshop.dtos.responses.ProductResponseDTO;
 import com.amalitech.smartshop.entities.Category;
-import com.amalitech.smartshop.entities.Inventory;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
@@ -97,17 +96,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponseDTO getProductById(Long id) {
+        // findById is annotated with @EntityGraph — inventory and category are JOIN FETCHed
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + id));
-        
+
         ProductResponseDTO response = productMapper.toResponseDTO(product);
-
-        categoryRepository.findById(product.getCategoryId())
-                .ifPresent(category -> response.setCategoryName(category.getName()));
-
-        inventoryRepository.findByProductId(product.getId())
-                .ifPresent(inventory -> response.setQuantity(inventory.getQuantity()));
-
+        if (product.getCategory() != null) {
+            response.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getInventory() != null) {
+            response.setQuantity(product.getInventory().getQuantity());
+        }
         return response;
     }
 
@@ -139,17 +138,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponseDTO> getAllProductsList() {
+        // findAllWithInventory() uses LEFT JOIN FETCH for both inventory and category — single query
         return productRepository.findAllWithInventory().stream()
-                .map(product -> {
-                    ProductResponseDTO response = productMapper.toResponseDTO(product);
-                    Integer quantity = cacheManager.get("invent:" + product.getId(), () ->
-                            inventoryRepository.findByProductId(product.getId())
-                                    .map(Inventory::getQuantity)
-                                    .orElse(null)
-                    );
-                    response.setQuantity(quantity);
-                    return response;
-                })
+                .map(this::toResponseWithAssociations)
                 .toList();
     }
 
@@ -174,24 +165,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Page<ProductResponseDTO> mapProductPageToResponse(Page<Product> productPage) {
-        return productPage.map(product -> {
-            ProductResponseDTO response = productMapper.toResponseDTO(product);
+        // All products in the page already have inventory and category JOIN FETCHed — no extra queries
+        return productPage.map(this::toResponseWithAssociations);
+    }
 
-            Category category = cacheManager.get("cat:" + product.getCategoryId(), () ->
-                    categoryRepository.findById(product.getCategoryId()).orElse(null)
-            );
-            if (category != null) {
-                response.setCategoryName(category.getName());
-            }
-
-            Integer quantity = cacheManager.get("invent:" + product.getId(), () ->
-                    inventoryRepository.findByProductId(product.getId())
-                            .map(Inventory::getQuantity)
-                            .orElse(0)
-            );
-            response.setQuantity(quantity);
-            return response;
-        });
+    /** Maps a product to a DTO using already-loaded associations — never triggers lazy loads. */
+    private ProductResponseDTO toResponseWithAssociations(Product product) {
+        ProductResponseDTO response = productMapper.toResponseDTO(product);
+        if (product.getCategory() != null) {
+            response.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getInventory() != null) {
+            response.setQuantity(product.getInventory().getQuantity());
+        }
+        return response;
     }
 
     @Override
@@ -226,11 +213,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void enrichProductResponse(ProductResponseDTO response, Product product) {
-        categoryRepository.findById(product.getCategoryId())
-                .ifPresent(category -> response.setCategoryName(category.getName()));
-
-        inventoryRepository.findByProductId(product.getId())
-                .ifPresent(inventory -> response.setQuantity(inventory.getQuantity()));
+        // product was loaded with @EntityGraph — associations are already fetched
+        if (product.getCategory() != null) {
+            response.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getInventory() != null) {
+            response.setQuantity(product.getInventory().getQuantity());
+        }
     }
 
     private void invalidateProductCache(Long productId) {
