@@ -13,6 +13,13 @@ import java.time.LocalDateTime;
 /**
  * I represent a product review in the SmartShop e-commerce platform.
  */
+@NamedEntityGraph(
+        name = "Review.withProductAndUser",
+        attributeNodes = {
+                @NamedAttributeNode("product"),
+                @NamedAttributeNode("user")
+        }
+)
 @Entity
 @Table(name = "reviews")
 @Data
@@ -43,4 +50,14 @@ public class Review {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /** Lazy association loaded via entity graph — avoids N+1 when resolving product name. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    /** Lazy association loaded via entity graph — avoids N+1 when resolving user name. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }

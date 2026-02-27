@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 /**
  * I represent inventory information for a product in the SmartShop e-commerce system.
  */
+@NamedEntityGraph(
+        name = "Inventory.withProduct",
+        attributeNodes = @NamedAttributeNode("product")
+)
 @Entity
 @Table(name = "inventory")
 @Data

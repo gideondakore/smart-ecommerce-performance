@@ -185,14 +185,14 @@ Example: `GET /api/products?search=book&minPrice=10&maxPrice=50&inStock=true&pag
 
 #### Cart
 
-| Method | Endpoint                  | Description      | Auth Required |
-| ------ | ------------------------- | ---------------- | ------------- |
-| GET    | `/api/cart`               | Get user's cart  | CUSTOMER      |
-| POST   | `/api/cart/items`         | Add item to cart | CUSTOMER      |
-| PUT    | `/api/cart/item/{itemId}` | Update cart item | CUSTOMER      |
-| DELETE | `/api/cart/item/{itemId}` | Remove cart item | CUSTOMER      |
-| DELETE | `/api/cart/clear`         | Clear cart       | CUSTOMER      |
-| POST   | `/api/cart/checkout`      | Checkout cart    | CUSTOMER      |
+| Method | Endpoint             | Description      | Auth Required |
+| ------ | -------------------- | ---------------- | ------------- |
+| GET    | `/api/cart`          | Get user's cart  | CUSTOMER      |
+| POST   | `/api/cart`          | Add item to cart | CUSTOMER      |
+| PUT    | `/api/cart/{itemId}` | Update cart item | CUSTOMER      |
+| DELETE | `/api/cart/{itemId}` | Remove cart item | CUSTOMER      |
+| DELETE | `/api/cart/clear`    | Clear cart       | CUSTOMER      |
+| POST   | `/api/cart/checkout` | Checkout cart    | CUSTOMER      |
 
 #### Inventory
 
@@ -297,6 +297,7 @@ cd backend/SmartShop && mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 ## Spring Graphql Playground
+
 **url:** http://localhost:8080/graphiql
 
 **example queries **
@@ -304,13 +305,13 @@ cd backend/SmartShop && mvn spring-boot:run -Dspring-boot.run.profiles=dev
 Query 1: Get All Products
 
 {
-  allProducts {
-    id
-    name
-    price
-    quantity
-    categoryName
-  }
+allProducts {
+id
+name
+price
+quantity
+categoryName
+}
 }
 
 ////////////////////////////////////
@@ -318,21 +319,21 @@ Query 1: Get All Products
 Query 2: Get Product by ID
 
 {
-   productById(id: 1) {
-        id
-        name
-        price
-        quantity
-        categoryName
-   }
+productById(id: 1) {
+id
+name
+price
+quantity
+categoryName
+}
 }
 
 Query 3: Get All Categories
 
 {
-    allCategories {
-        id
-        name
-        description
-    }
+allCategories {
+id
+name
+description
+}
 }

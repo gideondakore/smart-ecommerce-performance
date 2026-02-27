@@ -320,7 +320,7 @@ export const reviewApi = {
 export const cartApi = {
   get: () => fetchApi<any>("/cart"),
   addItem: (data: { productId: number; quantity: number }) =>
-    fetchApi<any>("/cart/items", {
+    fetchApi<any>("/cart", {
       method: "POST",
       body: JSON.stringify(data),
     }),

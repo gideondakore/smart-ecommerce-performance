@@ -38,8 +38,7 @@ public class CartController {
     }
 
     @Operation(summary = "Add item to cart")
-    // @RequiresRole(UserRole.CUSTOMER)
-    @PostMapping("/items")
+    @PostMapping
     public ResponseEntity<ApiResponse<CartResponseDTO>> addItemToCart(
             @Valid @RequestBody AddCartItemDTO request,
             HttpServletRequest httpRequest) {
@@ -51,7 +50,7 @@ public class CartController {
     }
 
     @Operation(summary = "Update cart item quantity")
-    @PutMapping("/item/{itemId}")
+    @PutMapping("/{itemId}")
     public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(
             @PathVariable Long itemId,
             @Valid @RequestBody UpdateCartItemDTO request,
@@ -63,7 +62,7 @@ public class CartController {
     }
 
     @Operation(summary = "Remove item from cart")
-    @DeleteMapping("/item/{itemId}")
+    @DeleteMapping("/{itemId}")
     public ResponseEntity<ApiResponse<CartResponseDTO>> removeItemFromCart(
             @PathVariable Long itemId,
             HttpServletRequest httpRequest) {

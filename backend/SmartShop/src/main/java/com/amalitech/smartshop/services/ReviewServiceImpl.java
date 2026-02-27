@@ -70,13 +70,9 @@ public class ReviewServiceImpl implements ReviewService {
         
         Review updatedReview = reviewRepository.save(review);
         
-        Product product = productRepository.findById(review.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
         log.info("Review updated successfully: {}", id);
-        return mapToResponseDTO(updatedReview, product.getName(), user.getFirstName() + " " + user.getLastName());
+        // updatedReview was loaded with entity graph — product and user are already in memory
+        return mapToResponseDTOWithLookup(updatedReview);
     }
 
     @Override
@@ -96,15 +92,10 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponseDTO getReviewById(Long id) {
+        // findById uses @EntityGraph — product and user are JOIN FETCHed
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + id));
-        
-        Product product = productRepository.findById(review.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        User user = userRepository.findById(review.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
-        return mapToResponseDTO(review, product.getName(), user.getFirstName() + " " + user.getLastName());
+        return mapToResponseDTOWithLookup(review);
     }
 
     @Override
@@ -145,13 +136,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
     }
 
+    /** Maps a review using its JOIN FETCHed associations — no extra queries per review. */
     private ReviewResponseDTO mapToResponseDTOWithLookup(Review review) {
-        Product product = productRepository.findById(review.getProductId()).orElse(null);
-        User user = userRepository.findById(review.getUserId()).orElse(null);
-        
-        String productName = product != null ? product.getName() : "Unknown Product";
-        String userName = user != null ? user.getFirstName() + " " + user.getLastName() : "Unknown User";
-        
+        String productName = review.getProduct() != null ? review.getProduct().getName() : "Unknown Product";
+        String userName = review.getUser() != null ? review.getUser().getFullName() : "Unknown User";
         return mapToResponseDTO(review, productName, userName);
     }
 }

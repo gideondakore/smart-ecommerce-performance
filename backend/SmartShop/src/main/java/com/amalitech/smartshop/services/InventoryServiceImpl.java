@@ -5,6 +5,7 @@ import com.amalitech.smartshop.dtos.requests.AddInventoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateInventoryDTO;
 import com.amalitech.smartshop.dtos.responses.InventoryResponseDTO;
 import com.amalitech.smartshop.entities.Inventory;
+import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
@@ -37,7 +38,8 @@ public class InventoryServiceImpl implements InventoryService {
     public InventoryResponseDTO addInventory(AddInventoryDTO addInventoryDTO) {
         log.info("Adding inventory for product: {}", addInventoryDTO.getProductId());
         
-        productRepository.findById(addInventoryDTO.getProductId())
+        // Validate product exists and keep it for the response (avoids a second lookup)
+        Product product = productRepository.findById(addInventoryDTO.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + addInventoryDTO.getProductId()));
 
         if (inventoryRepository.existsByProductId(addInventoryDTO.getProductId())) {
@@ -52,7 +54,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         Inventory savedInventory = inventoryRepository.save(inventory);
         InventoryResponseDTO response = inventoryMapper.toResponseDTO(savedInventory);
-        enrichResponseWithProductName(response, savedInventory.getProductId());
+        response.setProductName(product.getName()); // use already-fetched product
         
         log.info("Inventory added successfully with id: {}", savedInventory.getId());
         cacheManager.invalidate("invent:" + addInventoryDTO.getProductId());
@@ -61,20 +63,22 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public Page<InventoryResponseDTO> getAllInventories(Pageable pageable) {
+        // findAll uses @EntityGraph — product is JOIN FETCHed; no N+1 per inventory row
         return inventoryRepository.findAll(pageable)
                 .map(inventory -> cacheManager.get("inventory:" + inventory.getId(), () -> {
                     InventoryResponseDTO response = inventoryMapper.toResponseDTO(inventory);
-                    enrichResponseWithProductName(response, inventory.getProductId());
+                    enrichResponseWithProductName(response, inventory);
                     return response;
                 }));
     }
 
     @Override
     public InventoryResponseDTO getInventoryById(Long id) {
+        // findById uses @EntityGraph — product is JOIN FETCHed
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found with ID: " + id));
         InventoryResponseDTO response = inventoryMapper.toResponseDTO(inventory);
-        enrichResponseWithProductName(response, inventory.getProductId());
+        enrichResponseWithProductName(response, inventory);
         return response;
     }
 
@@ -83,10 +87,11 @@ public class InventoryServiceImpl implements InventoryService {
         productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
+        // findByProductId uses @EntityGraph — product is JOIN FETCHed
         Inventory inventory = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for product ID: " + productId));
         InventoryResponseDTO response = inventoryMapper.toResponseDTO(inventory);
-        enrichResponseWithProductName(response, inventory.getProductId());
+        enrichResponseWithProductName(response, inventory);
         return response;
     }
 
@@ -149,15 +154,17 @@ public class InventoryServiceImpl implements InventoryService {
     private InventoryResponseDTO saveAndBuildResponse(Long id, Inventory inventory) {
         Inventory updatedInventory = inventoryRepository.save(inventory);
         invalidateInventoryCache(id, inventory.getProductId());
-
+        // updatedInventory was loaded with entity graph via findById — product is in memory
         InventoryResponseDTO response = inventoryMapper.toResponseDTO(updatedInventory);
-        enrichResponseWithProductName(response, updatedInventory.getProductId());
+        enrichResponseWithProductName(response, updatedInventory);
         return response;
     }
 
-    private void enrichResponseWithProductName(InventoryResponseDTO response, Long productId) {
-        productRepository.findById(productId)
-                .ifPresent(product -> response.setProductName(product.getName()));
+    /** Sets the product name on the response using the JOIN FETCHed association — no extra query. */
+    private void enrichResponseWithProductName(InventoryResponseDTO response, Inventory inventory) {
+        if (inventory.getProduct() != null) {
+            response.setProductName(inventory.getProduct().getName());
+        }
     }
 
     private void invalidateInventoryCache(Long inventoryId, Long productId) {

@@ -14,6 +14,14 @@ import java.util.List;
 /**
  * I represent a shopping cart in the SmartShop e-commerce platform.
  */
+@NamedEntityGraph(
+        name = "Cart.withItemsAndProduct",
+        attributeNodes = @NamedAttributeNode(value = "items", subgraph = "cart-items"),
+        subgraphs = @NamedSubgraph(
+                name = "cart-items",
+                attributeNodes = @NamedAttributeNode("product")
+        )
+)
 @Entity
 @Table(name = "cart")
 @Data

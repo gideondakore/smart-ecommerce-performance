@@ -93,19 +93,19 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItem item : orderItems) {
             item.setOrderId(savedOrder.getId());
         }
-        List<OrderItem> savedItems = orderItemRepository.saveAll(orderItems);
+        orderItemRepository.saveAll(orderItems);
 
         log.info("Order created successfully with id: {}", savedOrder.getId());
-        return buildOrderResponse(savedOrder, savedItems);
+        // Re-fetch with entity graph so items, item products, and user are loaded for the response
+        Order fullOrder = orderRepository.findById(savedOrder.getId()).orElse(savedOrder);
+        return buildOrderResponse(fullOrder);
     }
 
     @Override
     public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
+        // findAll uses @EntityGraph — items, item products, and user are JOIN FETCHed; no N+1
         return orderRepository.findAll(pageable).map(order ->
-                cacheManager.get("ord:" + order.getId(), () -> {
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
-                    return buildOrderResponse(order, items);
-                })
+                cacheManager.get("ord:" + order.getId(), () -> buildOrderResponse(order))
         );
     }
 
@@ -114,26 +114,24 @@ public class OrderServiceImpl implements OrderService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
+        // findByUserId uses @EntityGraph — no N+1
         return orderRepository.findByUserId(userId, pageable).map(order ->
-                cacheManager.get("ord:" + order.getId(), () -> {
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
-                    return buildOrderResponse(order, items);
-                })
+                cacheManager.get("ord:" + order.getId(), () -> buildOrderResponse(order))
         );
     }
 
     @Override
     public OrderResponseDTO getOrderById(Long id) {
+        // findById uses @EntityGraph — items, item products, and user are JOIN FETCHed
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + id));
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
-        return buildOrderResponse(order, items);
+        return buildOrderResponse(order);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public OrderResponseDTO updateOrderStatus(Long id, UpdateOrderDTO updateOrderDTO) {
-        // I update the order status within a transaction
+        // findById uses @EntityGraph — associations are pre-loaded
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + id));
 
@@ -144,10 +142,8 @@ public class OrderServiceImpl implements OrderService {
         Order updatedOrder = orderRepository.save(order);
         cacheManager.invalidate("ord:" + id);
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(updatedOrder.getId());
-        
         log.info("Order status updated successfully: {}", id);
-        return buildOrderResponse(updatedOrder, items);
+        return buildOrderResponse(updatedOrder);
     }
 
     @Override
@@ -160,8 +156,9 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + id));
 
         try {
-            List<OrderItem> items = orderItemRepository.findByOrderId(id);
-            orderItemRepository.deleteAll(items);
+            // items are pre-loaded via entity graph on findById — no extra query needed
+            List<OrderItem> loadedItems = order.getItems() != null ? order.getItems() : List.of();
+            orderItemRepository.deleteAll(loadedItems);
             orderRepository.delete(order);
 
             cacheManager.invalidate("ord:" + id);
@@ -204,20 +201,27 @@ public class OrderServiceImpl implements OrderService {
         cacheManager.invalidate("invent:" + productId);
     }
 
-    private OrderResponseDTO buildOrderResponse(Order order, List<OrderItem> items) {
+    /** Builds the order response using associations pre-loaded by the entity graph — zero extra queries. */
+    private OrderResponseDTO buildOrderResponse(Order order) {
         OrderResponseDTO response = orderMapper.toResponseDTO(order);
 
-        userRepository.findById(order.getUserId())
-                .ifPresent(user -> response.setUserName(user.getFullName()));
+        // user is JOIN FETCHed via entity graph
+        if (order.getUser() != null) {
+            response.setUserName(order.getUser().getFullName());
+        }
 
-        List<OrderItemResponseDTO> itemResponses = items.stream()
-                .map(item -> {
-                    OrderItemResponseDTO itemResponse = orderMapper.toOrderItemResponseDTO(item);
-                    productRepository.findById(item.getProductId())
-                            .ifPresent(product -> itemResponse.setProductName(product.getName()));
-                    return itemResponse;
-                })
-                .collect(Collectors.toList());
+        // items and items.product are JOIN FETCHed via entity graph
+        List<OrderItemResponseDTO> itemResponses = order.getItems() == null
+                ? List.of()
+                : order.getItems().stream()
+                        .map(item -> {
+                            OrderItemResponseDTO itemResponse = orderMapper.toOrderItemResponseDTO(item);
+                            if (item.getProduct() != null) {
+                                itemResponse.setProductName(item.getProduct().getName());
+                            }
+                            return itemResponse;
+                        })
+                        .collect(Collectors.toList());
 
         response.setItems(itemResponses);
         return response;

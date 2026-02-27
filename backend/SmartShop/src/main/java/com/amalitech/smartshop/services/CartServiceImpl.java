@@ -8,7 +8,6 @@ import com.amalitech.smartshop.dtos.responses.CartItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.CartResponseDTO;
 import com.amalitech.smartshop.entities.Cart;
 import com.amalitech.smartshop.entities.CartItem;
-import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
 import com.amalitech.smartshop.interfaces.CartService;
@@ -53,7 +52,7 @@ public class CartServiceImpl implements CartService {
     public CartResponseDTO addItemToCart(AddCartItemDTO request, Long userId) {
         log.info("Adding item to cart for user: {}", userId);
         
-        Product product = productRepository.findById(request.getProductId())
+        productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + request.getProductId()));
         
         Cart cart = cartRepository.findByUserId(userId)
@@ -82,7 +81,10 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
         
         log.info("Item added to cart successfully");
-        return buildCartResponse(cart);
+        // Re-fetch with entity graph to get up-to-date items with products loaded
+        Cart freshCart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
     }
 
     @Override
@@ -107,7 +109,10 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
         
         log.info("Cart item updated successfully");
-        return buildCartResponse(cart);
+        // Re-fetch with entity graph to get up-to-date items with products loaded
+        Cart freshCart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
     }
 
     @Override
@@ -124,14 +129,19 @@ public class CartServiceImpl implements CartService {
         if (!cart.getUserId().equals(userId)) {
             throw new UnauthorizedException("You can only remove items from your own cart");
         }
-        
-        cartItemRepository.deleteById(itemId);
-        
-        // Update cart timestamp
+
+        // Remove from the cart's items collection; orphanRemoval=true handles the DB DELETE.
+        // Do NOT call cartItemRepository.deleteById() here — doing so leaves a deleted entity
+        // in the Hibernate session, which then throws ObjectDeletedException when
+        // cartRepository.save(cart) cascades and tries to merge the same instance.
+        cart.getItems().removeIf(item -> item.getId().equals(itemId));
         cartRepository.save(cart);
         
         log.info("Item removed from cart successfully");
-        return buildCartResponse(cart);
+        // Re-fetch with entity graph to get up-to-date items with products loaded
+        Cart freshCart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
     }
 
     @Override
@@ -180,31 +190,34 @@ public class CartServiceImpl implements CartService {
         clearCart(userId);
         
         log.info("Cart checked out successfully");
-        return buildCartResponse(cart);
+        // Re-fetch with entity graph — items are now empty after clearCart
+        Cart freshCart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
     }
 
+    /** Builds the cart response using associations pre-loaded by the entity graph — zero extra queries. */
     private CartResponseDTO buildCartResponse(Cart cart) {
-        List<CartItem> cartItems = cartItemRepository.findByCartId(cart.getId());
+        List<CartItem> cartItems = cart.getItems() != null ? cart.getItems() : List.of();
         
         List<CartItemResponseDTO> items = new ArrayList<>();
         double totalAmount = 0.0;
         int totalItems = 0;
         
         for (CartItem item : cartItems) {
-            Product product = productRepository.findById(item.getProductId()).orElse(null);
-            if (product != null) {
-                double itemTotal = product.getPrice() * item.getQuantity();
-                CartItemResponseDTO itemDTO = CartItemResponseDTO.builder()
+            // product is JOIN FETCHed via entity graph — no extra query per item
+            if (item.getProduct() != null) {
+                double itemTotal = item.getProduct().getPrice() * item.getQuantity();
+                items.add(CartItemResponseDTO.builder()
                         .id(item.getId())
                         .productId(item.getProductId())
-                        .productName(product.getName())
-                        .productPrice(product.getPrice())
+                        .productName(item.getProduct().getName())
+                        .productPrice(item.getProduct().getPrice())
                         .quantity(item.getQuantity())
                         .totalPrice(itemTotal)
                         .createdAt(item.getCreatedAt())
                         .updatedAt(item.getUpdatedAt())
-                        .build();
-                items.add(itemDTO);
+                        .build());
                 totalAmount += itemTotal;
                 totalItems += item.getQuantity();
             }

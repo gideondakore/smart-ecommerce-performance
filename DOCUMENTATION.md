@@ -7,6 +7,7 @@ SmartShop is a full-stack e-commerce application built with Spring Boot (Java 21
 ## Technology Stack
 
 ### Backend
+
 - **Framework**: Spring Boot 4.0.1
 - **Language**: Java 25
 - **Database**: PostgreSQL
@@ -17,6 +18,7 @@ SmartShop is a full-stack e-commerce application built with Spring Boot (Java 21
 - **Documentation**: Swagger/OpenAPI, GraphiQL
 
 ### Frontend
+
 - **Framework**: Next.js 16.1.6 (React)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
@@ -25,11 +27,13 @@ SmartShop is a full-stack e-commerce application built with Spring Boot (Java 21
 ## Architecture
 
 ### Layered Architecture
+
 ```
 Controller Layer → Service Layer → Repository Layer → Database
 ```
 
 ### Key Components
+
 1. **Controllers**: Handle HTTP requests and responses
 2. **Services**: Business logic and transaction management
 3. **Repositories**: Data access using Spring Data JPA
@@ -40,6 +44,7 @@ Controller Layer → Service Layer → Repository Layer → Database
 ## Database Schema
 
 ### Tables
+
 - **users**: User accounts with roles (ADMIN, VENDOR, CUSTOMER)
 - **categories**: Product categories
 - **products**: Product catalog with pricing and availability
@@ -54,12 +59,14 @@ Controller Layer → Service Layer → Repository Layer → Database
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/users/register` - Register new user
 - `POST /api/users/login` - Login and get session token
 - `POST /api/auth/logout` - Logout current session
 - `POST /api/auth/logout-all` - Logout from all devices
 
 ### Users
+
 - `GET /api/users` - Get all users (ADMIN)
 - `GET /api/users/profile` - Get current user profile
 - `PUT /api/users/profile` - Update current user profile
@@ -68,6 +75,7 @@ Controller Layer → Service Layer → Repository Layer → Database
 - `DELETE /api/users/{id}` - Delete user (ADMIN)
 
 ### Categories
+
 - `POST /api/categories` - Create category (ADMIN)
 - `GET /api/categories` - Get all categories (public)
 - `GET /api/categories/{id}` - Get category by ID (public)
@@ -75,6 +83,7 @@ Controller Layer → Service Layer → Repository Layer → Database
 - `DELETE /api/categories/{id}` - Delete category (ADMIN)
 
 ### Products
+
 - `POST /api/products` - Create product (ADMIN, VENDOR)
 - `POST /api/products/bulk` - Create multiple products (ADMIN, VENDOR)
 - `GET /api/products` - Get all products with filters (public)
@@ -84,6 +93,7 @@ Controller Layer → Service Layer → Repository Layer → Database
 - `DELETE /api/products/{id}` - Delete product (ADMIN, VENDOR)
 
 ### Orders
+
 - `POST /api/orders` - Create order (CUSTOMER, ADMIN)
 - `GET /api/orders` - Get all orders (ADMIN, VENDOR)
 - `GET /api/orders/user` - Get current user's orders (CUSTOMER)
@@ -92,14 +102,16 @@ Controller Layer → Service Layer → Repository Layer → Database
 - `DELETE /api/orders/{id}` - Delete order (ADMIN)
 
 ### Cart
+
 - `GET /api/cart` - Get user's cart (CUSTOMER)
-- `POST /api/cart/items` - Add item to cart (CUSTOMER)
+- `POST /api/cart` - Add item to cart (CUSTOMER)
 - `PUT /api/cart/item/{itemId}` - Update cart item (CUSTOMER)
 - `DELETE /api/cart/item/{itemId}` - Remove cart item (CUSTOMER)
 - `DELETE /api/cart/clear` - Clear cart (CUSTOMER)
 - `POST /api/cart/checkout` - Checkout cart (CUSTOMER)
 
 ### Inventory
+
 - `POST /api/inventory` - Create inventory (ADMIN, VENDOR)
 - `GET /api/inventory` - Get all inventory (ADMIN, VENDOR)
 - `GET /api/inventory/{id}` - Get inventory by ID
@@ -109,6 +121,7 @@ Controller Layer → Service Layer → Repository Layer → Database
 - `DELETE /api/inventory/{id}` - Delete inventory (ADMIN)
 
 ### Reviews
+
 - `POST /api/reviews` - Create review (CUSTOMER)
 - `GET /api/reviews` - Get all reviews
 - `GET /api/reviews/{id}` - Get review by ID
@@ -120,10 +133,12 @@ Controller Layer → Service Layer → Repository Layer → Database
 ## GraphQL API
 
 ### Endpoint
+
 - `POST /graphql` - GraphQL endpoint
 - `GET /graphiql` - GraphiQL interface (dev only)
 
 ### Sample Queries
+
 ```graphql
 # Get all products
 query {
@@ -157,6 +172,7 @@ query {
 ```
 
 ### Sample Mutations
+
 ```graphql
 # Login
 mutation {
@@ -180,6 +196,7 @@ mutation {
 ## Key Features
 
 ### 1. Spring Data JPA Integration
+
 - Repository interfaces extending `JpaRepository`
 - Derived query methods (e.g., `findByCategoryId`)
 - Custom JPQL queries with `@Query`
@@ -187,18 +204,21 @@ mutation {
 - Pagination and sorting support
 
 ### 2. Transaction Management
+
 - `@Transactional` on service methods
 - Automatic rollback on exceptions
 - Inventory deduction in order creation is transactional
 - Ensures data consistency
 
 ### 3. Inventory Management
+
 - Automatic inventory deduction when orders are placed
 - Stock validation before order creation
 - Insufficient stock error handling
 - Transaction rollback if inventory update fails
 
 ### 4. Search and Filtering
+
 - Backend-based product search (name, description)
 - Price range filtering (minPrice, maxPrice)
 - Category filtering
@@ -206,12 +226,14 @@ mutation {
 - Combines with pagination and sorting
 
 ### 5. Authentication & Authorization
+
 - Session-based authentication with tokens
 - Role-based access control (RBAC)
 - Custom interceptors for auth and role validation
 - Session expiration and cleanup
 
 ### 6. Caching
+
 - Custom in-memory cache manager
 - Cache hit/miss tracking
 - Performance monitoring with AOP
@@ -220,6 +242,7 @@ mutation {
 ## Setup Instructions
 
 ### Prerequisites
+
 - JDK 25
 - Maven 3.9+
 - PostgreSQL 12+
@@ -229,6 +252,7 @@ mutation {
 ### Backend Setup
 
 1. **Configure Database**
+
 ```properties
 # src/main/resources/application-dev.properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce_db
@@ -237,6 +261,7 @@ spring.datasource.password=myPassword
 ```
 
 2. **Build and Run**
+
 ```bash
 cd backend/SmartShop
 mvn clean install
@@ -244,6 +269,7 @@ mvn spring-boot:run
 ```
 
 3. **Access APIs**
+
 - REST API: http://localhost:8080/api
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - GraphiQL: http://localhost:8080/graphiql
@@ -251,28 +277,33 @@ mvn spring-boot:run
 ### Frontend Setup
 
 1. **Install Dependencies**
+
 ```bash
 cd frontend
 npm install
 ```
 
 2. **Configure API URL**
+
 ```bash
 # .env.local
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
 3. **Run Development Server**
+
 ```bash
 npm run dev
 ```
 
 4. **Access Application**
+
 - Frontend: http://localhost:3000
 
 ## Testing
 
 ### Test User Accounts
+
 ```
 Admin:
 - Email: admin@smartshop.com
@@ -293,6 +324,7 @@ Customer:
 2. Add products to cart
 3. Checkout cart
 4. Verify inventory quantity decreased in database:
+
 ```sql
 SELECT quantity FROM inventory WHERE product_id = 1;
 ```
@@ -302,6 +334,7 @@ SELECT quantity FROM inventory WHERE product_id = 1;
 1. Open GraphiQL: http://localhost:8080/graphiql
 2. Run sample queries from GraphQL API section
 3. Test with authentication by adding header:
+
 ```
 Authorization: Bearer <your-token>
 ```
@@ -309,17 +342,20 @@ Authorization: Bearer <your-token>
 ## Performance Optimization
 
 ### Database Queries
+
 - Indexed columns: product name, category_id, user email
 - JPA Specifications for efficient dynamic queries
 - Pagination to limit result sets
 - Lazy loading for relationships
 
 ### Caching
+
 - Product and category data cached
 - Cache invalidation on updates
 - Performance metrics tracked via AOP
 
 ### Custom Sorting
+
 - QuickSort and MergeSort implementations
 - In-memory sorting for small datasets
 - Database sorting for large datasets
@@ -327,6 +363,7 @@ Authorization: Bearer <your-token>
 ## Error Handling
 
 ### Standard Error Response
+
 ```json
 {
   "timestamp": "2026-01-19T10:30:00.000+00:00",
@@ -337,6 +374,7 @@ Authorization: Bearer <your-token>
 ```
 
 ### Validation Error Response
+
 ```json
 {
   "timestamp": "2026-01-19T10:30:00.000+00:00",
@@ -352,17 +390,20 @@ Authorization: Bearer <your-token>
 ## Development Guidelines
 
 ### Code Style
+
 - Comments in first-person perspective
 - No emojis in code or comments
 - Minimal, focused implementations
 - Follow REST conventions strictly
 
 ### Git Workflow
+
 - Incremental commits after each feature
 - Commit message format: `type: description`
 - Types: feat, fix, refactor, docs, test
 
 ### REST Endpoint Standards
+
 ```java
 // Correct
 @PostMapping
@@ -379,17 +420,20 @@ Authorization: Bearer <your-token>
 ## Troubleshooting
 
 ### Products Not Displaying
+
 - Verify backend is running on port 8080
 - Check database has products: `SELECT COUNT(*) FROM products;`
 - Clear browser localStorage if seeing auth errors
 - Verify CORS configuration allows frontend origin
 
 ### GraphQL Not Working
+
 - Ensure GraphiQL is enabled in application-dev.properties
 - Check authentication token in request headers
 - Verify GraphQL endpoint is not blocked by interceptors
 
 ### Order Creation Fails
+
 - Check product availability
 - Verify sufficient inventory
 - Check user has CUSTOMER role

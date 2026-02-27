@@ -1,6 +1,9 @@
 package com.amalitech.smartshop.repositories.jpa;
 
 import com.amalitech.smartshop.entities.Inventory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,8 +19,21 @@ import java.util.Optional;
 public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
 
     /**
-     * I find inventory by product ID.
+     * I load a single inventory with its product JOIN FETCHed — zero extra queries.
      */
+    @EntityGraph("Inventory.withProduct")
+    Optional<Inventory> findById(Long id);
+
+    /**
+     * I load all inventories (paginated) with products JOIN FETCHed — no N+1.
+     */
+    @EntityGraph("Inventory.withProduct")
+    Page<Inventory> findAll(Pageable pageable);
+
+    /**
+     * I find inventory by product ID with product JOIN FETCHed.
+     */
+    @EntityGraph("Inventory.withProduct")
     Optional<Inventory> findByProductId(Long productId);
 
     /**

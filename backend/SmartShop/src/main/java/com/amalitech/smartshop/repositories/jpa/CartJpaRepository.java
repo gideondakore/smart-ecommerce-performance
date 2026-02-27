@@ -11,16 +11,16 @@ import java.util.Optional;
 public interface CartJpaRepository extends JpaRepository<Cart, Long> {
 
     /**
-     * Find cart by user ID with items eagerly loaded
+     * Load a cart by id with items and each item's product JOIN FETCHed — no N+1.
      */
     @Override
-    @EntityGraph(attributePaths = {"items"})
+    @EntityGraph("Cart.withItemsAndProduct")
     Optional<Cart> findById(Long id);
 
     /**
-     * Find cart by user ID with items eagerly loaded
+     * Load a cart by user id with items and each item's product JOIN FETCHed — no N+1.
      */
-    @EntityGraph(attributePaths = {"items"})
+    @EntityGraph("Cart.withItemsAndProduct")
     Optional<Cart> findByUserId(Long userId);
 
     boolean existsByUserId(Long userId);

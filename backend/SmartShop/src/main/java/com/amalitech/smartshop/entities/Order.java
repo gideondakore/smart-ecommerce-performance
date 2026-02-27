@@ -15,6 +15,17 @@ import java.util.List;
 /**
  * I represent a customer order in the SmartShop e-commerce system.
  */
+@NamedEntityGraph(
+        name = "Order.withItemsProductAndUser",
+        attributeNodes = {
+                @NamedAttributeNode(value = "items", subgraph = "order-items"),
+                @NamedAttributeNode("user")
+        },
+        subgraphs = @NamedSubgraph(
+                name = "order-items",
+                attributeNodes = @NamedAttributeNode("product")
+        )
+)
 @Entity
 @Table(name = "orders")
 @Data
@@ -47,4 +58,9 @@ public class Order {
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<OrderItem> items;
+
+    /** Lazy association loaded via entity graph — avoids N+1 when resolving user name. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }
