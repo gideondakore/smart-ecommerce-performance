@@ -325,12 +325,12 @@ export const cartApi = {
       body: JSON.stringify(data),
     }),
   updateItem: (itemId: number, data: { quantity: number }) =>
-    fetchApi<any>(`/cart/item/${itemId}`, {
+    fetchApi<any>(`/cart/${itemId}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   removeItem: (itemId: number) =>
-    fetchApi<any>(`/cart/item/${itemId}`, { method: "DELETE" }),
+    fetchApi<any>(`/cart/${itemId}`, { method: "DELETE" }),
   clear: () => fetchApi<void>("/cart/clear", { method: "DELETE" }),
   checkout: () => fetchApi<any>("/cart/checkout", { method: "POST" }),
 };

@@ -61,23 +61,32 @@ public class CartServiceImpl implements CartService {
                     return cartRepository.save(newCart);
                 });
         
+        // Ensure items list is mutable before modifying
+        if (cart.getItems() == null) {
+            cart.setItems(new ArrayList<>());
+        }
+
         // Check if item already exists in cart
-        var existingItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), request.getProductId());
-        
+        // We operate on cart.getItems() (the managed collection) so that the in-memory
+        // state is always in sync before cartRepository.save(cart) runs.
+        // Calling cartItemRepository.save() then cartRepository.save(cart) would trigger
+        // orphanRemoval and DELETE the just-inserted item because cart.items is stale.
+        var existingItem = cart.getItems().stream()
+                .filter(i -> i.getProductId().equals(request.getProductId()))
+                .findFirst();
+
         if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + request.getQuantity());
-            cartItemRepository.save(item);
+            existingItem.get().setQuantity(existingItem.get().getQuantity() + request.getQuantity());
         } else {
             CartItem newItem = CartItem.builder()
                     .cartId(cart.getId())
                     .productId(request.getProductId())
                     .quantity(request.getQuantity())
                     .build();
-            cartItemRepository.save(newItem);
+            cart.getItems().add(newItem);
         }
-        
-        // Update cart timestamp
+
+        // Single save — cascades to items and updates the cart timestamp via @UpdateTimestamp
         cartRepository.save(cart);
         
         log.info("Item added to cart successfully");
@@ -101,11 +110,17 @@ public class CartServiceImpl implements CartService {
         if (!cart.getUserId().equals(userId)) {
             throw new UnauthorizedException("You can only update items in your own cart");
         }
-        
-        cartItem.setQuantity(request.getQuantity());
-        cartItemRepository.save(cartItem);
-        
-        // Update cart timestamp
+
+        // Update the item directly within the managed cart.items collection.
+        // Updating a separate cartItem instance and then calling cartRepository.save(cart)
+        // would let cascade overwrite the quantity with the stale value from cart.items.
+        cart.getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found in cart"))
+                .setQuantity(request.getQuantity());
+
+        // Single save — cascades to items and updates the cart timestamp via @UpdateTimestamp
         cartRepository.save(cart);
         
         log.info("Cart item updated successfully");
