@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
         name = "Product.withInventoryAndCategory",
         attributeNodes = {
                 @NamedAttributeNode("inventory"),
-                @NamedAttributeNode("category")
+                @NamedAttributeNode("category"),
+                @NamedAttributeNode("vendor")
         }
 )
 @Entity

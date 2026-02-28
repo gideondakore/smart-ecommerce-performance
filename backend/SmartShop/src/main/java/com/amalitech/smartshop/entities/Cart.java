@@ -16,7 +16,10 @@ import java.util.List;
  */
 @NamedEntityGraph(
         name = "Cart.withItemsAndProduct",
-        attributeNodes = @NamedAttributeNode(value = "items", subgraph = "cart-items"),
+        attributeNodes = {
+                @NamedAttributeNode(value = "items", subgraph = "cart-items"),
+                @NamedAttributeNode("user")
+        },
         subgraphs = @NamedSubgraph(
                 name = "cart-items",
                 attributeNodes = @NamedAttributeNode("product")

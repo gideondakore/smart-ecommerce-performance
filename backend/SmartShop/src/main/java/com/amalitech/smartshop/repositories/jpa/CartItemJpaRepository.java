@@ -1,6 +1,7 @@
 package com.amalitech.smartshop.repositories.jpa;
 
 import com.amalitech.smartshop.entities.CartItem;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,8 +17,10 @@ import java.util.Optional;
 @Repository
 public interface CartItemJpaRepository extends JpaRepository<CartItem, Long> {
 
+    @EntityGraph(attributePaths = {"product"})
     List<CartItem> findByCart_Id(Long cartId);
 
+    @EntityGraph(attributePaths = {"product", "cart"})
     Optional<CartItem> findByCart_IdAndProduct_Id(Long cartId, Long productId);
 
     boolean existsByCart_IdAndProduct_Id(Long cartId, Long productId);

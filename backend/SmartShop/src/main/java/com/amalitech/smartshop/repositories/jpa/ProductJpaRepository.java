@@ -57,14 +57,14 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long>, JpaS
      * Loads all products with inventory and category in a single query.
      * JPQL JOIN FETCH is needed because @EntityGraph cannot be applied to a simple findAll returning List.
      */
-    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category")
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category LEFT JOIN FETCH p.vendor")
     List<Product> findAllWithInventory();
 
     /**
      * Loads products by category with inventory and category JOIN FETCHed.
      * JPQL is used with a separate countQuery to avoid in-memory pagination.
      */
-    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category WHERE p.category.id = :categoryId",
+    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category LEFT JOIN FETCH p.vendor WHERE p.category.id = :categoryId",
            countQuery = "SELECT COUNT(p) FROM Product p WHERE p.category.id = :categoryId")
     Page<Product> findByCategoryIdWithInventory(@Param("categoryId") Long categoryId, Pageable pageable);
 }

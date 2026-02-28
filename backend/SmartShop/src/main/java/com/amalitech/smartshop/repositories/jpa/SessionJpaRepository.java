@@ -1,6 +1,7 @@
 package com.amalitech.smartshop.repositories.jpa;
 
 import com.amalitech.smartshop.entities.Session;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,15 +18,16 @@ import java.util.Optional;
 public interface SessionJpaRepository extends JpaRepository<Session, Long> {
 
     /**
-     * I find a session by token.
+     * I find a session by token, eagerly fetching the associated user.
      */
+    @EntityGraph(attributePaths = {"user"})
     Optional<Session> findByToken(String token);
 
     /**
      * Finds a non-expired session by token.
      * JPQL is needed because derived queries cannot express temporal comparisons against a parameter.
      */
-    @Query("SELECT s FROM Session s WHERE s.token = :token AND s.expiresAt > :now")
+    @Query("SELECT s FROM Session s JOIN FETCH s.user WHERE s.token = :token AND s.expiresAt > :now")
     Optional<Session> findValidSessionByToken(@Param("token") String token, @Param("now") LocalDateTime now);
 
     void deleteByToken(String token);

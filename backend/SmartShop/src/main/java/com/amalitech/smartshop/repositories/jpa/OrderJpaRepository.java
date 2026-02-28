@@ -27,6 +27,7 @@ public interface OrderJpaRepository extends JpaRepository<Order, Long> {
     @EntityGraph("Order.withItemsProductAndUser")
     Page<Order> findByUser_Id(Long userId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"user", "items", "items.product"})
     List<Order> findByUser_Id(Long userId);
 
     /**
