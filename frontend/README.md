@@ -31,7 +31,7 @@ Next.js frontend for the SmartShop e-commerce platform.
 - POST `/api/users/register` - Register new user
 - POST `/api/users/login` - User login
 - GET `/api/users/profile` - Get authenticated user profile
-- PUT `/api/users/updateProfile` - Update user profile
+- PUT `/api/users/{id}` - Update user profile
 - GET `/api/users/all` - Get all users (Admin)
 - GET `/api/users/{id}` - Get user by ID
 - PUT `/api/users/update/{id}` - Update user (Admin)

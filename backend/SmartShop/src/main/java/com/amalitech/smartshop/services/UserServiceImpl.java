@@ -119,6 +119,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
+        sessionService.deleteAllUserSessions(id);
+
         List<Order> orders = orderRepository.findByUser_Id(id);
         for (Order order : orders) {
             orderRepository.delete(order);
