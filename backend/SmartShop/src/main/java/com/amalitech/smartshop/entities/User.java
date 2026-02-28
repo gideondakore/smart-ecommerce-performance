@@ -51,7 +51,7 @@ public class User {
     private UserRole role;
 
     /**
-     * I return the full name of the user.
+     * This return the full name of the user.
      *
      * @return concatenation of first and last name
      */

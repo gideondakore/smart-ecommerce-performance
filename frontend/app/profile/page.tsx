@@ -9,7 +9,7 @@ export default function Profile() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [editing, setEditing] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({ username: "", email: "" });
 
   useEffect(() => {
@@ -17,21 +17,28 @@ export default function Profile() {
     else {
       userApi.getProfile().then((res) => {
         setProfile(res.data);
-        setFormData({ username: res.data.username, email: res.data.email });
+        setFormData({
+          username: res.data.username ?? "",
+          email: res.data.email ?? "",
+        });
       });
     }
   }, [user, router]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
       await userApi.updateProfile(formData);
       const res = await userApi.getProfile();
       setProfile(res.data);
+      setFormData({
+        username: res.data.username ?? "",
+        email: res.data.email ?? "",
+      });
       setEditing(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || "Failed to update profile");
     }
   };
 
@@ -77,17 +84,6 @@ export default function Profile() {
           </div>
         ) : (
           <form onSubmit={handleUpdate}>
-            <div className="mb-4">
-              <label className="block mb-2">Username</label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
             <div className="mb-6">
               <label className="block mb-2">Email</label>
               <input
