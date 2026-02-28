@@ -22,30 +22,27 @@ public interface SessionJpaRepository extends JpaRepository<Session, Long> {
     Optional<Session> findByToken(String token);
 
     /**
-     * I find a valid (non-expired) session by token.
+     * Finds a non-expired session by token.
+     * JPQL is needed because derived queries cannot express temporal comparisons against a parameter.
      */
     @Query("SELECT s FROM Session s WHERE s.token = :token AND s.expiresAt > :now")
     Optional<Session> findValidSessionByToken(@Param("token") String token, @Param("now") LocalDateTime now);
 
-    /**
-     * I delete a session by token.
-     */
     void deleteByToken(String token);
 
-    /**
-     * I delete all sessions for a user.
-     */
-    void deleteByUserId(Long userId);
+    void deleteByUser_Id(Long userId);
 
     /**
-     * I delete expired sessions.
+     * Removes all expired sessions in a single bulk DELETE.
+     * JPQL is needed because derived queries cannot express temporal comparisons against a parameter.
      */
     @Modifying
     @Query("DELETE FROM Session s WHERE s.expiresAt < :now")
     int deleteExpiredSessions(@Param("now") LocalDateTime now);
 
     /**
-     * I check if a valid session exists for a token.
+     * Checks whether a valid (non-expired) session exists for a given token.
+     * JPQL is needed because derived queries cannot express temporal comparisons against a parameter.
      */
     @Query("SELECT COUNT(s) > 0 FROM Session s WHERE s.token = :token AND s.expiresAt > :now")
     boolean existsValidSession(@Param("token") String token, @Param("now") LocalDateTime now);

@@ -30,40 +30,34 @@ public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
     @EntityGraph("Inventory.withProduct")
     Page<Inventory> findAll(Pageable pageable);
 
-    /**
-     * I find inventory by product ID with product JOIN FETCHed.
-     */
     @EntityGraph("Inventory.withProduct")
-    Optional<Inventory> findByProductId(Long productId);
+    Optional<Inventory> findByProduct_Id(Long productId);
+
+    boolean existsByProduct_Id(Long productId);
 
     /**
-     * I check if inventory exists for a product.
-     */
-    boolean existsByProductId(Long productId);
-
-    /**
-     * I update quantity for a product inventory.
+     * Updates quantity for a product inventory.
+     * JPQL is needed because derived queries cannot express UPDATE statements.
      */
     @Modifying
-    @Query("UPDATE Inventory i SET i.quantity = :quantity WHERE i.productId = :productId")
+    @Query("UPDATE Inventory i SET i.quantity = :quantity WHERE i.product.id = :productId")
     int updateQuantityByProductId(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 
     /**
-     * I decrement quantity for a product.
+     * Atomically decrements stock only when sufficient quantity exists.
+     * JPQL is required because this conditional update cannot be expressed via derived queries.
      */
     @Modifying
-    @Query("UPDATE Inventory i SET i.quantity = i.quantity - :quantity WHERE i.productId = :productId AND i.quantity >= :quantity")
+    @Query("UPDATE Inventory i SET i.quantity = i.quantity - :quantity WHERE i.product.id = :productId AND i.quantity >= :quantity")
     int decrementStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 
     /**
-     * I increment quantity for a product.
+     * Increments stock for a product.
+     * JPQL is needed because derived queries cannot express arithmetic in UPDATE statements.
      */
     @Modifying
-    @Query("UPDATE Inventory i SET i.quantity = i.quantity + :quantity WHERE i.productId = :productId")
+    @Query("UPDATE Inventory i SET i.quantity = i.quantity + :quantity WHERE i.product.id = :productId")
     int incrementStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 
-    /**
-     * I delete inventory by product ID.
-     */
-    void deleteByProductId(Long productId);
+    void deleteByProduct_Id(Long productId);
 }

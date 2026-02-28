@@ -4,7 +4,6 @@ import com.amalitech.smartshop.entities.Session;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
 import com.amalitech.smartshop.interfaces.SessionService;
-import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.server.WebGraphQlInterceptor;
 import org.springframework.graphql.server.WebGraphQlRequest;
@@ -23,7 +22,6 @@ import java.util.List;
 public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
 
     private final SessionService sessionService;
-    private final UserJpaRepository userRepository;
     private static final List<String> PUBLIC_QUERIES = List.of("allProducts", "productById", "allCategories", "categoryById");
     private static final List<String> PUBLIC_MUTATIONS = List.of("login", "register");
 
@@ -56,8 +54,7 @@ public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
                     .orElseThrow(() -> new UnauthorizedException("Invalid or expired session"));
 
             // Get user from session
-            User user = userRepository.findById(session.getUserId())
-                    .orElseThrow(() -> new UnauthorizedException("User not found"));
+            User user = session.getUser();
 
             // Set user context for GraphQL resolvers
             request.configureExecutionInput((executionInput, builder) ->

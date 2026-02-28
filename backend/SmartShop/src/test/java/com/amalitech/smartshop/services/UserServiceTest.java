@@ -9,10 +9,8 @@ import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.UserMapper;
-import com.amalitech.smartshop.cache.CacheManager;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
-import com.amalitech.smartshop.repositories.jpa.OrderItemJpaRepository;
 import com.amalitech.smartshop.interfaces.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,13 +35,7 @@ class UserServiceTest {
     private UserMapper userMapper;
 
     @Mock
-    private CacheManager cacheManager;
-
-    @Mock
     private OrderJpaRepository orderRepository;
-
-    @Mock
-    private OrderItemJpaRepository orderItemRepository;
 
     @Mock
     private SessionService sessionService;
@@ -51,7 +43,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        userService = new UserServiceImpl(userRepository, userMapper, cacheManager, orderRepository, orderItemRepository, sessionService);
+        userService = new UserServiceImpl(userRepository, userMapper, orderRepository, sessionService);
     }
 
     @Test
@@ -64,6 +56,7 @@ class UserServiceTest {
         
         User entity = new User();
         entity.setPassword("password123");
+        entity.setEmail("test@example.com");
         
         User savedEntity = new User();
         savedEntity.setId(1L);
@@ -204,7 +197,7 @@ class UserServiceTest {
         entity.setId(1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(orderRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
+        when(orderRepository.findByUser_Id(1L)).thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> userService.deleteUser(1L));
         verify(userRepository).delete(entity);

@@ -12,13 +12,7 @@ import java.util.List;
 @Repository
 public interface OrderItemJpaRepository extends JpaRepository<OrderItem, Long> {
 
-    /**
-     * I find all order items for an order.
-     */
-    List<OrderItem> findByOrderId(Long orderId);
+    List<OrderItem> findByOrder_Id(Long orderId);
 
-    /**
-     * I delete all order items for an order.
-     */
-    void deleteByOrderId(Long orderId);
+    void deleteByOrder_Id(Long orderId);
 }

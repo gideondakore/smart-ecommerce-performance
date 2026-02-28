@@ -8,7 +8,6 @@ import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.InventoryMapper;
-import com.amalitech.smartshop.cache.CacheManager;
 import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,13 +33,10 @@ class InventoryServiceTest {
     @Mock
     private InventoryMapper inventoryMapper;
 
-    @Mock
-    private CacheManager cacheManager;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        inventoryService = new InventoryServiceImpl(inventoryRepository, productRepository, inventoryMapper, cacheManager);
+        inventoryService = new InventoryServiceImpl(inventoryRepository, productRepository, inventoryMapper);
     }
 
     @Test
@@ -49,18 +45,18 @@ class InventoryServiceTest {
         dto.setProductId(1L);
         dto.setQuantity(100);
         dto.setLocation("Warehouse A");
-        
+
         Product product = new Product();
         product.setId(1L);
-        
+
         Inventory savedEntity = new Inventory();
         savedEntity.setId(1L);
-        
+
         InventoryResponseDTO responseDTO = new InventoryResponseDTO();
         responseDTO.setId(1L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(inventoryRepository.existsByProductId(1L)).thenReturn(false);
+        when(inventoryRepository.existsByProduct_Id(1L)).thenReturn(false);
         when(inventoryRepository.save(any(Inventory.class))).thenReturn(savedEntity);
         when(inventoryMapper.toResponseDTO(savedEntity)).thenReturn(responseDTO);
 
@@ -84,29 +80,29 @@ class InventoryServiceTest {
     void addInventory_AlreadyExists() {
         AddInventoryDTO dto = new AddInventoryDTO();
         dto.setProductId(1L);
-        
+
         Product product = new Product();
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(inventoryRepository.existsByProductId(1L)).thenReturn(true);
+        when(inventoryRepository.existsByProduct_Id(1L)).thenReturn(true);
 
         assertThrows(ResourceAlreadyExistsException.class, () -> inventoryService.addInventory(dto));
     }
 
     @Test
     void getInventoryById_Success() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Laptop");
+
         Inventory entity = new Inventory();
         entity.setId(1L);
-        entity.setProductId(1L);
-        
-        Product product = new Product();
-        product.setName("Laptop");
-        
+        entity.setProduct(product);
+
         InventoryResponseDTO responseDTO = new InventoryResponseDTO();
         responseDTO.setId(1L);
 
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(inventoryMapper.toResponseDTO(entity)).thenReturn(responseDTO);
 
         InventoryResponseDTO result = inventoryService.getInventoryById(1L);
@@ -123,18 +119,19 @@ class InventoryServiceTest {
 
     @Test
     void getInventoryByProductId_Success() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Laptop");
+
         Inventory entity = new Inventory();
         entity.setId(1L);
-        entity.setProductId(1L);
-        
-        Product product = new Product();
-        product.setName("Laptop");
-        
+        entity.setProduct(product);
+
         InventoryResponseDTO responseDTO = new InventoryResponseDTO();
         responseDTO.setId(1L);
 
-        when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.of(entity));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(inventoryRepository.findByProduct_Id(1L)).thenReturn(Optional.of(entity));
         when(inventoryMapper.toResponseDTO(entity)).thenReturn(responseDTO);
 
         InventoryResponseDTO result = inventoryService.getInventoryByProductId(1L);
@@ -146,24 +143,24 @@ class InventoryServiceTest {
     void updateInventory_Success() {
         UpdateInventoryDTO updateDTO = new UpdateInventoryDTO();
         updateDTO.setQuantity(200);
-        
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Laptop");
+
         Inventory existingEntity = new Inventory();
         existingEntity.setId(1L);
-        existingEntity.setProductId(1L);
-        
+        existingEntity.setProduct(product);
+
         Inventory updatedEntity = new Inventory();
         updatedEntity.setId(1L);
-        updatedEntity.setProductId(1L);
-        
-        Product product = new Product();
-        product.setName("Laptop");
-        
+        updatedEntity.setProduct(product);
+
         InventoryResponseDTO responseDTO = new InventoryResponseDTO();
         responseDTO.setId(1L);
 
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(existingEntity));
         when(inventoryRepository.save(existingEntity)).thenReturn(updatedEntity);
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(inventoryMapper.toResponseDTO(updatedEntity)).thenReturn(responseDTO);
 
         InventoryResponseDTO result = inventoryService.updateInventory(1L, updateDTO);
@@ -184,24 +181,24 @@ class InventoryServiceTest {
 
     @Test
     void adjustInventoryQuantity_Success() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Laptop");
+
         Inventory entity = new Inventory();
         entity.setId(1L);
-        entity.setProductId(1L);
+        entity.setProduct(product);
         entity.setQuantity(100);
-        
+
         Inventory updatedEntity = new Inventory();
         updatedEntity.setId(1L);
         updatedEntity.setQuantity(150);
-        
-        Product product = new Product();
-        product.setName("Laptop");
-        
+
         InventoryResponseDTO responseDTO = new InventoryResponseDTO();
         responseDTO.setId(1L);
 
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(entity));
         when(inventoryRepository.save(entity)).thenReturn(updatedEntity);
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(inventoryMapper.toResponseDTO(updatedEntity)).thenReturn(responseDTO);
 
         InventoryResponseDTO result = inventoryService.adjustInventoryQuantity(1L, 50);

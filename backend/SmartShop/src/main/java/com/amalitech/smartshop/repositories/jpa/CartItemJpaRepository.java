@@ -11,40 +11,26 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * I provide JPA repository operations for CartItem entity.
+ * Provides JPA repository operations for CartItem entity.
  */
 @Repository
 public interface CartItemJpaRepository extends JpaRepository<CartItem, Long> {
 
-    /**
-     * I find all items in a cart.
-     */
-    List<CartItem> findByCartId(Long cartId);
+    List<CartItem> findByCart_Id(Long cartId);
+
+    Optional<CartItem> findByCart_IdAndProduct_Id(Long cartId, Long productId);
+
+    boolean existsByCart_IdAndProduct_Id(Long cartId, Long productId);
 
     /**
-     * I find a cart item by cart ID and product ID.
-     */
-    Optional<CartItem> findByCartIdAndProductId(Long cartId, Long productId);
-
-    /**
-     * I check if a product exists in a cart.
-     */
-    boolean existsByCartIdAndProductId(Long cartId, Long productId);
-
-    /**
-     * I update quantity of a cart item.
+     * Updates quantity for a specific cart-product pair.
+     * Custom JPQL is needed because derived queries cannot express UPDATE statements.
      */
     @Modifying
-    @Query("UPDATE CartItem ci SET ci.quantity = :quantity WHERE ci.cartId = :cartId AND ci.productId = :productId")
+    @Query("UPDATE CartItem ci SET ci.quantity = :quantity WHERE ci.cart.id = :cartId AND ci.product.id = :productId")
     int updateQuantityByCartIdAndProductId(@Param("cartId") Long cartId, @Param("productId") Long productId, @Param("quantity") Integer quantity);
 
-    /**
-     * I delete a cart item by cart ID and product ID.
-     */
-    void deleteByCartIdAndProductId(Long cartId, Long productId);
+    void deleteByCart_IdAndProduct_Id(Long cartId, Long productId);
 
-    /**
-     * I delete all items in a cart.
-     */
-    void deleteByCartId(Long cartId);
+    void deleteByCart_Id(Long cartId);
 }

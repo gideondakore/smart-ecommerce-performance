@@ -35,15 +35,6 @@ public class PerformanceController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get cache metrics", description = "Retrieves cache hit/miss statistics. Requires ADMIN role.")
-    @RequiresRole(UserRole.ADMIN)
-    @GetMapping("/cache-metrics")
-    public ResponseEntity<ApiResponse<Map<String, Map<String, Object>>>> getCacheMetrics() {
-        Map<String, Map<String, Object>> metrics = performanceAspect.getCacheMetrics();
-        ApiResponse<Map<String, Map<String, Object>>> response = new ApiResponse<>(HttpStatus.OK.value(), "Cache metrics retrieved successfully", metrics);
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "Clear performance metrics", description = "Clears all recorded performance metrics. Requires ADMIN role.")
     @RequiresRole(UserRole.ADMIN)
     @DeleteMapping("/clear-metrics")

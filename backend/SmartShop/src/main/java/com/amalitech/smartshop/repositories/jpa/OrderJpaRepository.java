@@ -5,37 +5,36 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * I provide JPA repository operations for Order entity.
+ * Provides JPA repository operations for Order entity.
  */
 @Repository
 public interface OrderJpaRepository extends JpaRepository<Order, Long> {
 
-    /**
-     * I load a single order with its items, each item's product, and the user — zero extra queries.
-     */
     @EntityGraph("Order.withItemsProductAndUser")
     Optional<Order> findById(Long id);
 
-    /**
-     * I load all orders (paginated) with items, item products, and users JOIN FETCHed — no N+1.
-     */
-    @EntityGraph("Order.withItemsProductAndUser")
+    @EntityGraph(attributePaths = {"items", "user", "items.product"})
     Page<Order> findAll(Pageable pageable);
 
-    /**
-     * I find all orders for a user (paginated) with items and item products JOIN FETCHed.
-     */
     @EntityGraph("Order.withItemsProductAndUser")
-    Page<Order> findByUserId(Long userId, Pageable pageable);
+    Page<Order> findByUser_Id(Long userId, Pageable pageable);
+
+    List<Order> findByUser_Id(Long userId);
 
     /**
-     * I find all orders for a user.
+     * Finds high-value orders above a given total amount, eagerly loading user and items.
+     * JPQL is required because derived queries cannot express greater-than on totalAmount
+     * while also applying an entity graph for eager association loading.
      */
-    List<Order> findByUserId(Long userId);
+    @EntityGraph("Order.withItemsProductAndUser")
+    @Query("SELECT o FROM Order o WHERE o.totalAmount >= :minAmount ORDER BY o.totalAmount DESC")
+    Page<Order> findHighValueOrders(@Param("minAmount") Double minAmount, Pageable pageable);
 }

@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PerformanceMonitoringAspect {
 
     private final Map<String, QueryMetrics> dbMetrics = new HashMap<>();
-    private final Map<String, CacheMetrics> cacheMetrics = new HashMap<>();
 
     @Around("execution(* com.amalitech.smartshop.repositories..*(..))")
     public Object monitorDatabaseFetch(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -66,31 +65,6 @@ public class PerformanceMonitoringAspect {
 
     public synchronized void clearMetrics() {
         dbMetrics.clear();
-        cacheMetrics.clear();
-    }
-
-    public void recordCacheHit(String key) {
-        synchronized (cacheMetrics) {
-            cacheMetrics.computeIfAbsent(key, k -> new CacheMetrics()).incrementHit();
-        }
-    }
-
-    public void recordCacheMiss(String key) {
-        synchronized (cacheMetrics) {
-            cacheMetrics.computeIfAbsent(key, k -> new CacheMetrics()).incrementMiss();
-        }
-    }
-
-    public synchronized Map<String, Map<String, Object>> getCacheMetrics() {
-        Map<String, Map<String, Object>> result = new HashMap<>();
-        cacheMetrics.forEach((key, metrics) -> {
-            Map<String, Object> metricData = new HashMap<>();
-            metricData.put("hits", metrics.getHits());
-            metricData.put("misses", metrics.getMisses());
-            metricData.put("hitRate", metrics.getHitRate());
-            result.put(key, metricData);
-        });
-        return result;
     }
 
     private static class QueryMetrics {
@@ -124,32 +98,6 @@ public class PerformanceMonitoringAspect {
 
         public long getMaxTime() {
             return maxTime;
-        }
-    }
-
-    private static class CacheMetrics {
-        private final AtomicInteger hits = new AtomicInteger(0);
-        private final AtomicInteger misses = new AtomicInteger(0);
-
-        public void incrementHit() {
-            hits.incrementAndGet();
-        }
-
-        public void incrementMiss() {
-            misses.incrementAndGet();
-        }
-
-        public int getHits() {
-            return hits.get();
-        }
-
-        public int getMisses() {
-            return misses.get();
-        }
-
-        public double getHitRate() {
-            int total = hits.get() + misses.get();
-            return total > 0 ? (double) hits.get() / total * 100 : 0;
         }
     }
 }

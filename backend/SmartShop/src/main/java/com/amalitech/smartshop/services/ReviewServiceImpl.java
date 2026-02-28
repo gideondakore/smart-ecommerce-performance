@@ -17,117 +17,120 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
-    
+
     private final ReviewJpaRepository reviewRepository;
     private final ProductJpaRepository productRepository;
     private final UserJpaRepository userRepository;
 
     @Override
+    @Transactional
     public ReviewResponseDTO addReview(AddReviewDTO request, Long userId) {
         log.info("Adding review for product: {} by user: {}", request.getProductId(), userId);
-        
+
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + request.getProductId()));
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-        
+
         Review review = Review.builder()
-                .productId(request.getProductId())
-                .userId(userId)
+                .product(product)
+                .user(user)
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .build();
-        
+
         Review savedReview = reviewRepository.save(review);
-        
+
         log.info("Review added successfully with id: {}", savedReview.getId());
-        return mapToResponseDTO(savedReview, product.getName(), user.getFirstName() + " " + user.getLastName());
+        return mapToResponseDTO(savedReview, product.getName(), user.getFullName());
     }
 
     @Override
+    @Transactional
     public ReviewResponseDTO updateReview(Long id, UpdateReviewDTO request, Long userId) {
         log.info("Updating review: {} by user: {}", id, userId);
-        
+
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + id));
-        
-        if (!review.getUserId().equals(userId)) {
+
+        if (!review.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("You can only update your own reviews");
         }
-        
+
         if (request.getRating() != null) {
             review.setRating(request.getRating());
         }
         if (request.getComment() != null) {
             review.setComment(request.getComment());
         }
-        
+
         Review updatedReview = reviewRepository.save(review);
-        
+
         log.info("Review updated successfully: {}", id);
-        // updatedReview was loaded with entity graph — product and user are already in memory
-        return mapToResponseDTOWithLookup(updatedReview);
+        return mapToResponseDTOFromEntity(updatedReview);
     }
 
     @Override
+    @Transactional
     public void deleteReview(Long id, Long userId) {
         log.info("Deleting review: {} by user: {}", id, userId);
-        
+
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + id));
-        
-        if (!review.getUserId().equals(userId)) {
+
+        if (!review.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("You can only delete your own reviews");
         }
-        
+
         reviewRepository.deleteById(id);
         log.info("Review deleted successfully: {}", id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReviewResponseDTO getReviewById(Long id) {
-        // findById uses @EntityGraph — product and user are JOIN FETCHed
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + id));
-        return mapToResponseDTOWithLookup(review);
+        return mapToResponseDTOFromEntity(review);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ReviewResponseDTO> getAllReviews(Pageable pageable) {
-        return reviewRepository.findAll(pageable)
-                .map(this::mapToResponseDTOWithLookup);
+        return reviewRepository.findAll(pageable).map(this::mapToResponseDTOFromEntity);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ReviewResponseDTO> getReviewsByProductId(Long productId, Pageable pageable) {
         productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
-        
-        return reviewRepository.findByProductId(productId, pageable)
-                .map(this::mapToResponseDTOWithLookup);
+
+        return reviewRepository.findByProduct_Id(productId, pageable).map(this::mapToResponseDTOFromEntity);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ReviewResponseDTO> getReviewsByUserId(Long userId, Pageable pageable) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-        
-        return reviewRepository.findByUserId(userId, pageable)
-                .map(this::mapToResponseDTOWithLookup);
+
+        return reviewRepository.findByUser_Id(userId, pageable).map(this::mapToResponseDTOFromEntity);
     }
 
     private ReviewResponseDTO mapToResponseDTO(Review review, String productName, String userName) {
         return ReviewResponseDTO.builder()
                 .id(review.getId())
-                .productId(review.getProductId())
+                .productId(review.getProduct().getId())
                 .productName(productName)
-                .userId(review.getUserId())
+                .userId(review.getUser().getId())
                 .userName(userName)
                 .rating(review.getRating())
                 .comment(review.getComment())
@@ -136,8 +139,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
     }
 
-    /** Maps a review using its JOIN FETCHed associations — no extra queries per review. */
-    private ReviewResponseDTO mapToResponseDTOWithLookup(Review review) {
+    private ReviewResponseDTO mapToResponseDTOFromEntity(Review review) {
         String productName = review.getProduct() != null ? review.getProduct().getName() : "Unknown Product";
         String userName = review.getUser() != null ? review.getUser().getFullName() : "Unknown User";
         return mapToResponseDTO(review, productName, userName);

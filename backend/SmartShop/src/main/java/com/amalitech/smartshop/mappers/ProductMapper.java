@@ -12,21 +12,25 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    @Mapping(target = "categoryName", ignore = true)
-    @Mapping(target = "quantity", ignore = true)
+    @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "vendor.id", target = "vendorId")
+    @Mapping(source = "inventory.quantity", target = "quantity")
     ProductResponseDTO toResponseDTO(Product product);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "categoryId", ignore = true)
-    @Mapping(target = "vendorId", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "vendor", ignore = true)
+    @Mapping(target = "inventory", ignore = true)
     @Mapping(target = "available", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Product toEntity(AddProductDTO addProductDTO);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "categoryId", ignore = true)
-    @Mapping(target = "vendorId", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "vendor", ignore = true)
+    @Mapping(target = "inventory", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

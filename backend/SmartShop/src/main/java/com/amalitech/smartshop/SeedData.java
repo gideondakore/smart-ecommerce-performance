@@ -188,115 +188,127 @@ public class SeedData implements CommandLineRunner {
         if (productRepository.count() == 0) {
             log.info("Seeding products...");
 
-            Long vendorId = userRepository.findAll().stream()
+            User vendor = userRepository.findAll().stream()
                     .filter(u -> u.getRole() == UserRole.VENDOR)
                     .findFirst()
-                    .map(User::getId)
                     .orElse(null);
+
+            Category electronics = categoryRepository.findAll().stream()
+                    .filter(c -> "Electronics".equals(c.getName()))
+                    .findFirst().orElse(null);
+            Category fashion = categoryRepository.findAll().stream()
+                    .filter(c -> "Fashion".equals(c.getName()))
+                    .findFirst().orElse(null);
+            Category home = categoryRepository.findAll().stream()
+                    .filter(c -> "Home & Garden".equals(c.getName()))
+                    .findFirst().orElse(null);
+            Category sports = categoryRepository.findAll().stream()
+                    .filter(c -> "Sports & Outdoors".equals(c.getName()))
+                    .findFirst().orElse(null);
 
             Product laptop = Product.builder()
                     .name("Laptop Pro 15")
                     .description("High-performance laptop with 16GB RAM")
-                    .categoryId(1L)
+                    .category(electronics)
                     .sku("LAP-001")
                     .price(1299.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(laptop);
-            inventoryRepository.save(Inventory.builder().productId(laptop.getId()).quantity(50).location("Warehouse A").build());
+            inventoryRepository.save(Inventory.builder().product(laptop).quantity(50).location("Warehouse A").build());
 
             Product mouse = Product.builder()
                     .name("Wireless Mouse")
                     .description("Ergonomic wireless mouse")
-                    .categoryId(1L)
+                    .category(electronics)
                     .sku("MOU-001")
                     .price(29.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(mouse);
-            inventoryRepository.save(Inventory.builder().productId(mouse.getId()).quantity(100).location("Warehouse A").build());
+            inventoryRepository.save(Inventory.builder().product(mouse).quantity(100).location("Warehouse A").build());
 
             Product cable = Product.builder()
                     .name("USB-C Cable")
                     .description("Fast charging USB-C cable")
-                    .categoryId(1L)
+                    .category(electronics)
                     .sku("CAB-001")
                     .price(12.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(cable);
-            inventoryRepository.save(Inventory.builder().productId(cable.getId()).quantity(200).location("Warehouse B").build());
+            inventoryRepository.save(Inventory.builder().product(cable).quantity(200).location("Warehouse B").build());
 
             Product tshirt = Product.builder()
                     .name("T-Shirt Blue")
                     .description("Cotton blue t-shirt")
-                    .categoryId(2L)
+                    .category(fashion)
                     .sku("TSH-001")
                     .price(19.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(tshirt);
-            inventoryRepository.save(Inventory.builder().productId(tshirt.getId()).quantity(75).location("Warehouse C").build());
+            inventoryRepository.save(Inventory.builder().product(tshirt).quantity(75).location("Warehouse C").build());
 
             Product jeans = Product.builder()
                     .name("Jeans Classic")
                     .description("Classic fit jeans")
-                    .categoryId(2L)
+                    .category(fashion)
                     .sku("JEA-001")
                     .price(49.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(jeans);
-            inventoryRepository.save(Inventory.builder().productId(jeans.getId()).quantity(60).location("Warehouse C").build());
+            inventoryRepository.save(Inventory.builder().product(jeans).quantity(60).location("Warehouse C").build());
 
             Product hose = Product.builder()
                     .name("Garden Hose")
                     .description("50ft expandable garden hose")
-                    .categoryId(3L)
+                    .category(home)
                     .sku("HOS-001")
                     .price(34.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(hose);
-            inventoryRepository.save(Inventory.builder().productId(hose.getId()).quantity(40).location("Warehouse B").build());
+            inventoryRepository.save(Inventory.builder().product(hose).quantity(40).location("Warehouse B").build());
 
             Product basketball = Product.builder()
                     .name("Basketball")
                     .description("Official size basketball")
-                    .categoryId(4L)
+                    .category(sports)
                     .sku("BAS-001")
                     .price(24.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(basketball);
-            inventoryRepository.save(Inventory.builder().productId(basketball.getId()).quantity(80).location("Warehouse A").build());
+            inventoryRepository.save(Inventory.builder().product(basketball).quantity(80).location("Warehouse A").build());
 
             Product yogaMat = Product.builder()
                     .name("Yoga Mat")
                     .description("Non-slip yoga mat")
-                    .categoryId(4L)
+                    .category(sports)
                     .sku("YOG-001")
                     .price(29.99)
                     .imageUrl("https://placehold.net/1.png")
                     .available(true)
-                    .vendorId(vendorId)
+                    .vendor(vendor)
                     .build();
             productRepository.save(yogaMat);
-            inventoryRepository.save(Inventory.builder().productId(yogaMat.getId()).quantity(90).location("Warehouse C").build());
+            inventoryRepository.save(Inventory.builder().product(yogaMat).quantity(90).location("Warehouse C").build());
 
             log.info("Seeded {} products successfully", productRepository.count());
         } else {

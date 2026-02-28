@@ -8,7 +8,6 @@ import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.CategoryMapper;
-import com.amalitech.smartshop.cache.CacheManager;
 import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
@@ -33,9 +32,6 @@ class CategoryServiceTest {
     private CategoryMapper categoryMapper;
 
     @Mock
-    private CacheManager cacheManager;
-
-    @Mock
     private ProductJpaRepository productRepository;
 
     @Mock
@@ -44,7 +40,7 @@ class CategoryServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        categoryService = new CategoryServiceImpl(categoryRepository, categoryMapper, cacheManager, productRepository, inventoryRepository);
+        categoryService = new CategoryServiceImpl(categoryRepository, categoryMapper, productRepository, inventoryRepository);
     }
 
     @Test
@@ -137,7 +133,7 @@ class CategoryServiceTest {
         entity.setId(1L);
 
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(productRepository.findByCategoryId(1L)).thenReturn(java.util.Collections.emptyList());
+        when(productRepository.findByCategory_Id(1L)).thenReturn(java.util.Collections.emptyList());
 
         assertDoesNotThrow(() -> categoryService.deleteCategory(1L));
         verify(categoryRepository).delete(entity);

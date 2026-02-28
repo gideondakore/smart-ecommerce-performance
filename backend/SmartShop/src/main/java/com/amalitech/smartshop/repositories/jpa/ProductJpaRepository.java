@@ -44,35 +44,27 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long>, JpaS
     @EntityGraph("Product.withInventoryAndCategory")
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
 
-    /**
-     * I find all products by category ID (paginated) with inventory and category JOIN FETCHed.
-     */
     @EntityGraph("Product.withInventoryAndCategory")
-    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
+    Page<Product> findByCategory_Id(Long categoryId, Pageable pageable);
+
+    @EntityGraph("Product.withInventoryAndCategory")
+    List<Product> findByCategory_Id(Long categoryId);
+
+    @EntityGraph("Product.withInventoryAndCategory")
+    Page<Product> findByVendor_Id(Long vendorId, Pageable pageable);
 
     /**
-     * I find all products by category ID.
-     */
-    @EntityGraph("Product.withInventoryAndCategory")
-    List<Product> findByCategoryId(Long categoryId);
-
-    /**
-     * I find all products by vendor ID (paginated) with inventory and category JOIN FETCHed.
-     */
-    @EntityGraph("Product.withInventoryAndCategory")
-    Page<Product> findByVendorId(Long vendorId, Pageable pageable);
-
-    /**
-     * I find all products that have inventory, JOIN FETCHing inventory and category in one query.
+     * Loads all products with inventory and category in a single query.
+     * JPQL JOIN FETCH is needed because @EntityGraph cannot be applied to a simple findAll returning List.
      */
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category")
     List<Product> findAllWithInventory();
 
     /**
-     * I find products by category that have inventory, JOIN FETCHing inventory and category.
-     * Uses countQuery to avoid in-memory pagination (safe because inventory/category are single-valued).
+     * Loads products by category with inventory and category JOIN FETCHed.
+     * JPQL is used with a separate countQuery to avoid in-memory pagination.
      */
-    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category WHERE p.categoryId = :categoryId",
-           countQuery = "SELECT COUNT(p) FROM Product p WHERE p.categoryId = :categoryId")
+    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.inventory LEFT JOIN FETCH p.category WHERE p.category.id = :categoryId",
+           countQuery = "SELECT COUNT(p) FROM Product p WHERE p.category.id = :categoryId")
     Page<Product> findByCategoryIdWithInventory(@Param("categoryId") Long categoryId, Pageable pageable);
 }

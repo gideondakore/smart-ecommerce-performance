@@ -4,7 +4,6 @@ import com.amalitech.smartshop.entities.Session;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
 import com.amalitech.smartshop.interfaces.SessionService;
-import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final SessionService sessionService;
-    private final UserJpaRepository userRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, Object handler) throws Exception {
@@ -51,12 +49,11 @@ public class AuthInterceptor implements HandlerInterceptor {
         Session session = sessionService.validateSession(token)
                 .orElseThrow(() -> new UnauthorizedException("Invalid or expired session"));
         
-        User user = userRepository.findById(session.getUserId())
-                .orElseThrow(() -> new UnauthorizedException("User not found"));
+        User user = session.getUser();
         
         log.info("Authenticated user: id={}, role={}", user.getId(), user.getRole().name());
         
-        request.setAttribute("authUserId", session.getUserId());
+        request.setAttribute("authUserId", user.getId());
         request.setAttribute("authenticatedUserRole", user.getRole().name());
         request.setAttribute("sessionToken", token);
         

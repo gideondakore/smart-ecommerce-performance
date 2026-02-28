@@ -98,7 +98,7 @@ public class ProductSpecification {
             if (vendorId == null) {
                 return criteriaBuilder.conjunction();
             }
-            return criteriaBuilder.equal(root.get("vendorId"), vendorId);
+            return criteriaBuilder.equal(root.get("vendor").get("id"), vendorId);
         };
     }
 

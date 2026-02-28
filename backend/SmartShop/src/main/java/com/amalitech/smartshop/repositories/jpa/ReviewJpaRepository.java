@@ -30,46 +30,26 @@ public interface ReviewJpaRepository extends JpaRepository<Review, Long> {
     @EntityGraph("Review.withProductAndUser")
     Page<Review> findAll(Pageable pageable);
 
-    /**
-     * I find all reviews for a product (paginated) with product and user JOIN FETCHed.
-     */
     @EntityGraph("Review.withProductAndUser")
-    Page<Review> findByProductId(Long productId, Pageable pageable);
+    Page<Review> findByProduct_Id(Long productId, Pageable pageable);
 
-    /**
-     * I find all reviews by a user (paginated) with product and user JOIN FETCHed.
-     */
     @EntityGraph("Review.withProductAndUser")
-    Page<Review> findByUserId(Long userId, Pageable pageable);
+    Page<Review> findByUser_Id(Long userId, Pageable pageable);
+
+    List<Review> findByProduct_Id(Long productId);
+
+    List<Review> findByUser_Id(Long userId);
+
+    Optional<Review> findByUser_IdAndProduct_Id(Long userId, Long productId);
+
+    boolean existsByUser_IdAndProduct_Id(Long userId, Long productId);
 
     /**
-     * I find all reviews for a product.
+     * Calculates average rating for a product.
+     * JPQL is needed because aggregate functions are not supported via derived queries.
      */
-    List<Review> findByProductId(Long productId);
-
-    /**
-     * I find all reviews by a user.
-     */
-    List<Review> findByUserId(Long userId);
-
-    /**
-     * I find a review by user and product.
-     */
-    Optional<Review> findByUserIdAndProductId(Long userId, Long productId);
-
-    /**
-     * I check if a user has reviewed a product.
-     */
-    boolean existsByUserIdAndProductId(Long userId, Long productId);
-
-    /**
-     * I calculate average rating for a product.
-     */
-    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.productId = :productId")
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
     Double calculateAverageRatingByProductId(@Param("productId") Long productId);
 
-    /**
-     * I count reviews for a product.
-     */
-    long countByProductId(Long productId);
+    long countByProduct_Id(Long productId);
 }

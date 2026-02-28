@@ -15,11 +15,13 @@ public interface CategoryMapper {
     CategoryResponseDTO toResponseDTO(Category category);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "products", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Category toEntity(AddCategoryDTO addCategoryDTO);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "products", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

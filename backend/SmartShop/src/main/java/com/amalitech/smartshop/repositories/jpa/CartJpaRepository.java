@@ -17,12 +17,11 @@ public interface CartJpaRepository extends JpaRepository<Cart, Long> {
     @EntityGraph("Cart.withItemsAndProduct")
     Optional<Cart> findById(Long id);
 
-    /**
-     * Load a cart by user id with items and each item's product JOIN FETCHed — no N+1.
-     */
+    /** Loads a cart by user ID with items and each item's product JOIN FETCHed — no N+1. */
     @EntityGraph("Cart.withItemsAndProduct")
-    Optional<Cart> findByUserId(Long userId);
+    Optional<Cart> findByUser_Id(Long userId);
 
-    boolean existsByUserId(Long userId);
-    void deleteByUserId(Long userId);
+    boolean existsByUser_Id(Long userId);
+
+    void deleteByUser_Id(Long userId);
 }

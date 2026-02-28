@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,8 +41,9 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(name = "category_id", nullable = false)
-    private Long categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(nullable = false)
     private String sku;
@@ -49,8 +51,9 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
-    @Column(name = "vendor_id")
-    private Long vendorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id")
+    private User vendor;
 
     @Builder.Default
     @Column(name = "is_available")
@@ -63,10 +66,6 @@ public class Product {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", insertable = false, updatable = false)
-    private Category category;
 
     @OneToOne(mappedBy = "product", fetch = FetchType.LAZY)
     private Inventory inventory;

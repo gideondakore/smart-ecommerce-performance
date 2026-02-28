@@ -5,13 +5,13 @@ import com.amalitech.smartshop.dtos.responses.ProductResponseDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateProductDTO;
 import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;
+import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.ProductMapper;
-import com.amalitech.smartshop.cache.CacheManager;
 import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
-import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -36,15 +36,12 @@ class ProductServiceTest {
     private CategoryJpaRepository categoryRepository;
 
     @Mock
-    private InventoryJpaRepository inventoryRepository;
-
-    @Mock
-    private CacheManager cacheManager;
+    private UserJpaRepository userRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        productService = new ProductServiceImpl(productRepository, productMapper, categoryRepository, inventoryRepository, cacheManager);
+        productService = new ProductServiceImpl(productRepository, productMapper, categoryRepository, userRepository);
     }
 
     @Test
@@ -54,25 +51,28 @@ class ProductServiceTest {
         dto.setCategoryId(1L);
         dto.setSku("LAP001");
         dto.setPrice(999.99);
-        
+
         Category category = new Category();
         category.setId(1L);
         category.setName("Electronics");
-        
+
+        User vendor = new User();
+        vendor.setId(1L);
+
         Product entity = new Product();
         Product savedEntity = new Product();
         savedEntity.setId(1L);
-        savedEntity.setCategoryId(1L);
-        
+        savedEntity.setCategory(category);
+
         ProductResponseDTO responseDTO = new ProductResponseDTO();
         responseDTO.setId(1L);
 
         when(productRepository.existsByNameIgnoreCase("Laptop")).thenReturn(false);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(vendor));
         when(productMapper.toEntity(dto)).thenReturn(entity);
         when(productRepository.save(entity)).thenReturn(savedEntity);
         when(productMapper.toResponseDTO(savedEntity)).thenReturn(responseDTO);
-        when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.empty());
 
         ProductResponseDTO result = productService.addProduct(dto, 1L, "VENDOR");
 
@@ -104,20 +104,19 @@ class ProductServiceTest {
 
     @Test
     void getProductById_Success() {
+        Category category = new Category();
+        category.setId(1L);
+        category.setName("Electronics");
+
         Product entity = new Product();
         entity.setId(1L);
-        entity.setCategoryId(1L);
-        
-        Category category = new Category();
-        category.setName("Electronics");
-        
+        entity.setCategory(category);
+
         ProductResponseDTO responseDTO = new ProductResponseDTO();
         responseDTO.setId(1L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(productMapper.toResponseDTO(entity)).thenReturn(responseDTO);
-        when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.empty());
 
         ProductResponseDTO result = productService.getProductById(1L);
 
@@ -135,28 +134,27 @@ class ProductServiceTest {
     void updateProduct_Success() {
         UpdateProductDTO updateDTO = new UpdateProductDTO();
         updateDTO.setName("Updated Laptop");
-        
+
+        Category category = new Category();
+        category.setId(1L);
+        category.setName("Electronics");
+
         Product existingEntity = new Product();
         existingEntity.setId(1L);
         existingEntity.setName("Laptop");
-        existingEntity.setCategoryId(1L);
-        
+        existingEntity.setCategory(category);
+
         Product updatedEntity = new Product();
         updatedEntity.setId(1L);
         updatedEntity.setName("Updated Laptop");
-        updatedEntity.setCategoryId(1L);
-        
-        Category category = new Category();
-        category.setName("Electronics");
-        
+        updatedEntity.setCategory(category);
+
         ProductResponseDTO responseDTO = new ProductResponseDTO();
         responseDTO.setId(1L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(existingEntity));
         when(productRepository.save(existingEntity)).thenReturn(updatedEntity);
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(productMapper.toResponseDTO(updatedEntity)).thenReturn(responseDTO);
-        when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.empty());
 
         ProductResponseDTO result = productService.updateProduct(1L, updateDTO);
 
@@ -170,7 +168,6 @@ class ProductServiceTest {
         entity.setId(1L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.empty());
 
         assertDoesNotThrow(() -> productService.deleteProduct(1L));
         verify(productRepository).delete(entity);

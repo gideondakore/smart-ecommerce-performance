@@ -11,7 +11,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface InventoryMapper {
 
-    @Mapping(source = "productId", target = "productId")
-    @Mapping(target = "productName", ignore = true)
+    @Mapping(source = "product.id", target = "productId")
+    @Mapping(source = "product.name", target = "productName")
     InventoryResponseDTO toResponseDTO(Inventory inventory);
 }
