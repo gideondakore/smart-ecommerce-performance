@@ -39,7 +39,7 @@ public class CartServiceImpl implements CartService {
     private final OrderService orderService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public CartResponseDTO getCartByUserId(Long userId) {
         log.info("Getting cart for user: {}", userId);
 

@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponseDTO loginUser(LoginDTO loginDTO) {
         log.info("Attempting login for email: {}", loginDTO.getEmail());
 
