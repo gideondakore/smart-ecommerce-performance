@@ -2,7 +2,9 @@ package com.amalitech.smartshop.services;
 
 import com.amalitech.smartshop.dtos.requests.AddReviewDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateReviewDTO;
+import com.amalitech.smartshop.dtos.responses.RatingDistributionDTO;
 import com.amalitech.smartshop.dtos.responses.ReviewResponseDTO;
+import com.amalitech.smartshop.dtos.responses.ReviewSummaryDTO;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.entities.Review;
 import com.amalitech.smartshop.entities.User;
@@ -18,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -143,5 +147,54 @@ public class ReviewServiceImpl implements ReviewService {
         String productName = review.getProduct() != null ? review.getProduct().getName() : "Unknown Product";
         String userName = review.getUser() != null ? review.getUser().getFullName() : "Unknown User";
         return mapToResponseDTO(review, productName, userName);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReviewSummaryDTO getReviewSummary(Long productId) {
+        log.info("Getting review summary for product: {}", productId);
+
+        productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+
+        Double averageRating = reviewRepository.calculateAverageRatingByProductId(productId);
+        long reviewCount = reviewRepository.countByProduct_Id(productId);
+
+        return ReviewSummaryDTO.builder()
+                .productId(productId)
+                .averageRating(averageRating != null ? averageRating : 0.0)
+                .reviewCount(reviewCount)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasUserReviewedProduct(Long userId, Long productId) {
+        return reviewRepository.existsByUser_IdAndProduct_Id(userId, productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReviewResponseDTO getUserReviewForProduct(Long userId, Long productId) {
+        Review review = reviewRepository.findByUser_IdAndProduct_Id(userId, productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Review not found for user " + userId + " and product " + productId));
+        return mapToResponseDTOFromEntity(review);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RatingDistributionDTO> getRatingDistribution(Long productId) {
+        log.info("Getting rating distribution for product: {}", productId);
+
+        productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+
+        List<Object[]> results = reviewRepository.getRatingDistribution(productId);
+        return results.stream().map(row -> RatingDistributionDTO.builder()
+                .rating(((Number) row[0]).intValue())
+                .count(((Number) row[1]).longValue())
+                .build()
+        ).toList();
     }
 }

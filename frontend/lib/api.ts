@@ -110,6 +110,9 @@ export const userApi = {
     }),
   deleteUser: (id: number) =>
     fetchApi<void>(`/users/${id}`, { method: "DELETE" }),
+  checkEmailExists: (email: string) =>
+    fetchApi<boolean>(`/users/check-email?email=${encodeURIComponent(email)}`),
+  getRoleStats: () => fetchApi<any[]>("/users/role-stats"),
 };
 
 export const categoryApi = {
@@ -141,6 +144,9 @@ export const categoryApi = {
     }),
   delete: (id: number) =>
     fetchApi<void>(`/categories/${id}`, { method: "DELETE" }),
+  getByName: (name: string) =>
+    fetchApi<any>(`/categories/name/${encodeURIComponent(name)}`),
+  getWithProductCount: () => fetchApi<any[]>("/categories/with-count"),
 };
 
 export const productApi = {
@@ -232,6 +238,11 @@ export const productApi = {
     }),
   delete: (id: number) =>
     fetchApi<void>(`/products/${id}`, { method: "DELETE" }),
+  getByCategoryOptimized: (categoryId: number, page = 0, size = 10) =>
+    fetchApi<PagedResponse<any>>(
+      `/products/category/${categoryId}/optimized?page=${page}&size=${size}`,
+    ),
+  getStatistics: () => fetchApi<any[]>("/products/statistics"),
 };
 
 export const orderApi = {
@@ -267,6 +278,18 @@ export const orderApi = {
       body: JSON.stringify(data),
     }),
   delete: (id: number) => fetchApi<void>(`/orders/${id}`, { method: "DELETE" }),
+  getOrderItems: (orderId: number) =>
+    fetchApi<any[]>(`/orders/${orderId}/items`),
+  getHighValueOrders: (minAmount: number, page = 0, size = 10) =>
+    fetchApi<PagedResponse<any>>(
+      `/orders/high-value?minAmount=${minAmount}&page=${page}&size=${size}`,
+    ),
+  getRevenueReport: (startDate: string, endDate: string) =>
+    fetchApi<any[]>(
+      `/orders/revenue?startDate=${startDate}&endDate=${endDate}`,
+    ),
+  getBestSellers: (limit = 10) =>
+    fetchApi<any[]>(`/orders/best-sellers?limit=${limit}`),
 };
 
 export const inventoryApi = {
@@ -291,6 +314,22 @@ export const inventoryApi = {
     }),
   delete: (id: number) =>
     fetchApi<void>(`/inventory/${id}`, { method: "DELETE" }),
+  updateStockByProductId: (productId: number, quantity: number) =>
+    fetchApi<void>(`/inventory/product/${productId}/stock?quantity=${quantity}`, {
+      method: "PUT",
+    }),
+  decrementStock: (productId: number, quantity: number) =>
+    fetchApi<void>(`/inventory/product/${productId}/decrement?quantity=${quantity}`, {
+      method: "POST",
+    }),
+  incrementStock: (productId: number, quantity: number) =>
+    fetchApi<void>(`/inventory/product/${productId}/increment?quantity=${quantity}`, {
+      method: "POST",
+    }),
+  getLowStock: (threshold = 10) =>
+    fetchApi<any[]>(`/inventory/low-stock?threshold=${threshold}`),
+  deleteByProductId: (productId: number) =>
+    fetchApi<void>(`/inventory/product/${productId}`, { method: "DELETE" }),
 };
 
 export const reviewApi = {
@@ -315,6 +354,16 @@ export const reviewApi = {
     }),
   delete: (id: number) =>
     fetchApi<void>(`/reviews/${id}`, { method: "DELETE" }),
+  getByUserAndProduct: (userId: number, productId: number) =>
+    fetchApi<any>(`/reviews/user/${userId}/product/${productId}`),
+  hasUserReviewed: (userId: number, productId: number) =>
+    fetchApi<boolean>(
+      `/reviews/check?userId=${userId}&productId=${productId}`,
+    ),
+  getRatingDistribution: (productId: number) =>
+    fetchApi<any[]>(`/reviews/product/${productId}/rating`),
+  getReviewSummary: (productId: number) =>
+    fetchApi<any>(`/reviews/product/${productId}/summary`),
 };
 
 export const cartApi = {
@@ -333,4 +382,20 @@ export const cartApi = {
     fetchApi<any>(`/cart/${itemId}`, { method: "DELETE" }),
   clear: () => fetchApi<void>("/cart/clear", { method: "DELETE" }),
   checkout: () => fetchApi<any>("/cart/checkout", { method: "POST" }),
+  getSummary: () => fetchApi<any>("/cart/summary"),
+  updateItemByProduct: (productId: number, quantity: number) =>
+    fetchApi<any>(`/cart/product/${productId}?quantity=${quantity}`, {
+      method: "PATCH",
+    }),
+  exists: () => fetchApi<boolean>("/cart/exists"),
+  deleteCart: () => fetchApi<void>("/cart/user", { method: "DELETE" }),
+};
+
+export const authApi = {
+  logout: () => fetchApi<void>("/auth/logout", { method: "POST" }),
+  logoutAll: () => fetchApi<void>("/auth/logout-all", { method: "POST" }),
+  validateSession: () => fetchApi<boolean>("/auth/validate"),
+  cleanExpiredSessions: () =>
+    fetchApi<number>("/auth/sessions/expired", { method: "DELETE" }),
+  getActiveSessionCount: () => fetchApi<number>("/auth/sessions/active-count"),
 };

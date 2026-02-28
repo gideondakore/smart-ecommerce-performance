@@ -5,7 +5,9 @@ import com.amalitech.smartshop.dtos.requests.AddReviewDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateReviewDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
+import com.amalitech.smartshop.dtos.responses.RatingDistributionDTO;
 import com.amalitech.smartshop.dtos.responses.ReviewResponseDTO;
+import com.amalitech.smartshop.dtos.responses.ReviewSummaryDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for review management operations.
@@ -131,6 +135,42 @@ public class ReviewController {
                 reviews.isLast()
         );
         ApiResponse<PagedResponse<ReviewResponseDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Reviews fetched successfully", pagedResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get review by user and product")
+    @GetMapping("/user/{userId}/product/{productId}")
+    public ResponseEntity<ApiResponse<ReviewResponseDTO>> getReviewByUserAndProduct(
+            @PathVariable Long userId,
+            @PathVariable Long productId) {
+        ReviewResponseDTO review = reviewService.getUserReviewForProduct(userId, productId);
+        ApiResponse<ReviewResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Review fetched successfully", review);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Check if user has reviewed a product")
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponse<Boolean>> hasUserReviewed(
+            @RequestParam Long userId,
+            @RequestParam Long productId) {
+        boolean reviewed = reviewService.hasUserReviewedProduct(userId, productId);
+        ApiResponse<Boolean> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Review check completed", reviewed);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get average rating for a product")
+    @GetMapping("/product/{productId}/rating")
+    public ResponseEntity<ApiResponse<List<RatingDistributionDTO>>> getRatingDistribution(@PathVariable Long productId) {
+        List<RatingDistributionDTO> distribution = reviewService.getRatingDistribution(productId);
+        ApiResponse<List<RatingDistributionDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Rating distribution fetched successfully", distribution);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get review summary for a product")
+    @GetMapping("/product/{productId}/summary")
+    public ResponseEntity<ApiResponse<ReviewSummaryDTO>> getReviewSummary(@PathVariable Long productId) {
+        ReviewSummaryDTO summary = reviewService.getReviewSummary(productId);
+        ApiResponse<ReviewSummaryDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Review summary fetched successfully", summary);
         return ResponseEntity.ok(apiResponse);
     }
 }

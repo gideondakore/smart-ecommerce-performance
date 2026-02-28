@@ -19,6 +19,17 @@ import java.util.Optional;
 public interface ReviewJpaRepository extends JpaRepository<Review, Long> {
 
     /**
+     * Retrieves the rating distribution for a product using native SQL.
+     * Native SQL is used because GROUP BY with COUNT on a single column
+     * produces a clean tabular result best consumed as raw rows.
+     */
+    @org.springframework.data.jpa.repository.Query(
+            value = "SELECT r.rating, COUNT(r.id) AS count FROM reviews r "
+                    + "WHERE r.product_id = :productId GROUP BY r.rating ORDER BY r.rating",
+            nativeQuery = true)
+    List<Object[]> getRatingDistribution(@org.springframework.data.repository.query.Param("productId") Long productId);
+
+    /**
      * I load a single review with its product and user JOIN FETCHed — zero extra queries.
      */
     @EntityGraph("Review.withProductAndUser")

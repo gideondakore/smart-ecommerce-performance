@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,6 +18,17 @@ import java.util.Optional;
  */
 @Repository
 public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
+
+    /**
+     * Finds inventory items at or below a given stock threshold using native SQL.
+     * Native SQL is used because the JOIN with ordering and threshold filtering
+     * is more efficient and readable as raw SQL.
+     */
+    @Query(value = "SELECT i.id, i.quantity, i.location, p.id AS product_id, p.name AS product_name "
+            + "FROM inventory i JOIN products p ON i.product_id = p.id "
+            + "WHERE i.quantity <= :threshold ORDER BY i.quantity ASC",
+            nativeQuery = true)
+    List<Object[]> findLowStockItems(@Param("threshold") Integer threshold);
 
     /**
      * I load a single inventory with its product JOIN FETCHed — zero extra queries.

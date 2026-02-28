@@ -3,6 +3,7 @@ package com.amalitech.smartshop.services;
 import com.amalitech.smartshop.dtos.requests.AddProductDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateProductDTO;
 import com.amalitech.smartshop.dtos.responses.ProductResponseDTO;
+import com.amalitech.smartshop.dtos.responses.ProductStatisticsDTO;
 import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.entities.User;
@@ -168,5 +169,30 @@ public class ProductServiceImpl implements ProductService {
                 && productRepository.existsByNameIgnoreCase(newName)) {
             throw new ResourceAlreadyExistsException("Product with name '" + newName + "' already exists");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDTO> getProductsByCategoryWithInventory(Long categoryId, Pageable pageable) {
+        log.info("Getting products by category {} with inventory via JPQL", categoryId);
+
+        categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + categoryId));
+
+        return productRepository.findByCategoryIdWithInventory(categoryId, pageable).map(productMapper::toResponseDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductStatisticsDTO> getProductStatistics() {
+        log.info("Generating product statistics by category");
+
+        List<Object[]> results = productRepository.getProductStatisticsByCategory();
+        return results.stream().map(row -> ProductStatisticsDTO.builder()
+                .categoryName((String) row[0])
+                .productCount(((Number) row[1]).longValue())
+                .averagePrice(((Number) row[2]).doubleValue())
+                .build()
+        ).toList();
     }
 }

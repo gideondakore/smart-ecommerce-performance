@@ -6,6 +6,7 @@ import com.amalitech.smartshop.dtos.requests.OrderItemDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateCartItemDTO;
 import com.amalitech.smartshop.dtos.responses.CartItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.CartResponseDTO;
+import com.amalitech.smartshop.dtos.responses.CartSummaryDTO;
 import com.amalitech.smartshop.entities.Cart;
 import com.amalitech.smartshop.entities.CartItem;
 import com.amalitech.smartshop.entities.Product;
@@ -196,6 +197,96 @@ public class CartServiceImpl implements CartService {
                     Cart newCart = Cart.builder().user(user).build();
                     return cartRepository.save(newCart);
                 });
+    }
+
+    @Override
+    @Transactional
+    public CartResponseDTO updateCartItemByProduct(Long productId, Integer quantity, Long userId) {
+        log.info("Updating cart item by product: {} for user: {}", productId, userId);
+
+        Cart cart = getOrCreateCart(userId);
+        CartItem cartItem = cartItemRepository.findByCartIdAndProduct_Id(cart.getId(), productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found in cart with ID: " + productId));
+
+        cartItemRepository.updateQuantityByCartIdAndProductId(cart.getId(), productId, quantity);
+
+        log.info("Cart item updated by product ID successfully");
+        Cart freshCart = cartRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
+    }
+
+    @Override
+    @Transactional
+    public CartResponseDTO removeItemByProduct(Long productId, Long userId) {
+        log.info("Removing product: {} from cart for user: {}", productId, userId);
+
+        Cart cart = getOrCreateCart(userId);
+
+        if (!cartItemRepository.existsByCartIdAndProduct_Id(cart.getId(), productId)) {
+            throw new ResourceNotFoundException("Product not found in cart with ID: " + productId);
+        }
+
+        cartItemRepository.deleteByCartIdAndProduct_Id(cart.getId(), productId);
+
+        log.info("Product removed from cart successfully");
+        Cart freshCart = cartRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+        return buildCartResponse(freshCart);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean cartExists(Long userId) {
+        return cartRepository.existsByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCart(Long userId) {
+        log.info("Deleting entire cart for user: {}", userId);
+
+        if (!cartRepository.existsByUserId(userId)) {
+            throw new ResourceNotFoundException("Cart not found for user: " + userId);
+        }
+
+        cartRepository.deleteByUserId(userId);
+        log.info("Cart deleted successfully for user: {}", userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CartSummaryDTO getCartSummary(Long userId) {
+        log.info("Getting cart summary for user: {}", userId);
+
+        Cart cart = cartRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
+
+        List<Object[]> summary = cartItemRepository.getCartItemSummary(cart.getId());
+        List<Object[]> cartSummary = cartRepository.getCartSummaryByUserId(userId);
+
+        Long itemCount = 0L;
+        Long totalQuantity = 0L;
+        Double totalAmount = 0.0;
+
+        if (!summary.isEmpty()) {
+            Object[] row = summary.getFirst();
+            itemCount = ((Number) row[0]).longValue();
+            totalQuantity = ((Number) row[1]).longValue();
+        }
+
+        if (!cartSummary.isEmpty()) {
+            Object[] row = cartSummary.getFirst();
+            totalAmount = ((Number) row[2]).doubleValue();
+        }
+
+        return CartSummaryDTO.builder()
+                .cartId(cart.getId())
+                .userId(userId)
+                .itemCount(itemCount)
+                .totalQuantity(totalQuantity)
+                .totalAmount(totalAmount)
+                .build();
     }
 
     private CartResponseDTO buildCartResponse(Cart cart) {

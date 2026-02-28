@@ -4,8 +4,11 @@ import com.amalitech.smartshop.config.RequiresRole;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
+import com.amalitech.smartshop.dtos.responses.BestSellerDTO;
+import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
+import com.amalitech.smartshop.dtos.responses.RevenueReportDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.OrderService;
 import com.amalitech.smartshop.utils.sorting.SortingService;
@@ -134,6 +137,55 @@ public class OrderController {
     public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
         ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Order deleted successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get order items")
+    @GetMapping("/{id}/items")
+    public ResponseEntity<ApiResponse<List<OrderItemResponseDTO>>> getOrderItems(@PathVariable Long id) {
+        List<OrderItemResponseDTO> items = orderService.getOrderItems(id);
+        ApiResponse<List<OrderItemResponseDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Order items fetched successfully", items);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get high value orders")
+    @RequiresRole(UserRole.ADMIN)
+    @GetMapping("/high-value")
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getHighValueOrders(
+            @RequestParam Double minAmount,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Page<OrderResponseDTO> orders = orderService.getHighValueOrders(minAmount, pageable);
+        PagedResponse<OrderResponseDTO> pagedResponse = new PagedResponse<>(
+                orders.getContent(),
+                orders.getNumber(),
+                (int) orders.getTotalElements(),
+                orders.getTotalPages(),
+                orders.isLast()
+        );
+        ApiResponse<PagedResponse<OrderResponseDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "High value orders fetched successfully", pagedResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get revenue report")
+    @RequiresRole(UserRole.ADMIN)
+    @GetMapping("/revenue")
+    public ResponseEntity<ApiResponse<List<RevenueReportDTO>>> getRevenueReport(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        List<RevenueReportDTO> report = orderService.getRevenueReport(startDate, endDate);
+        ApiResponse<List<RevenueReportDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Revenue report fetched successfully", report);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get best selling products")
+    @RequiresRole(UserRole.ADMIN)
+    @GetMapping("/best-sellers")
+    public ResponseEntity<ApiResponse<List<BestSellerDTO>>> getBestSellers(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<BestSellerDTO> bestSellers = orderService.getBestSellingProducts(limit);
+        ApiResponse<List<BestSellerDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Best sellers fetched successfully", bestSellers);
         return ResponseEntity.ok(apiResponse);
     }
 }

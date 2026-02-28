@@ -5,8 +5,11 @@ import com.amalitech.smartshop.dtos.requests.UpdateUserDTO;
 import com.amalitech.smartshop.dtos.requests.UserRegistrationDTO;
 import com.amalitech.smartshop.dtos.responses.LoginResponseDTO;
 import com.amalitech.smartshop.dtos.responses.UserSummaryDTO;
+import com.amalitech.smartshop.dtos.responses.UserRoleStatsDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Service interface for user-related business operations.
@@ -60,4 +63,19 @@ public interface UserService {
      * @param id the user ID to delete
      */
     void deleteUser(Long id);
+
+    /**
+     * Check if an email is already registered.
+     *
+     * @param email the email to check
+     * @return true if the email exists
+     */
+    boolean emailExists(String email);
+
+    /**
+     * Get user count grouped by role via native SQL.
+     *
+     * @return list of role statistics
+     */
+    List<UserRoleStatsDTO> getUserRoleStats();
 }

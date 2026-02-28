@@ -3,6 +3,7 @@ package com.amalitech.smartshop.services;
 import com.amalitech.smartshop.dtos.requests.AddInventoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateInventoryDTO;
 import com.amalitech.smartshop.dtos.responses.InventoryResponseDTO;
+import com.amalitech.smartshop.dtos.responses.LowStockDTO;
 import com.amalitech.smartshop.entities.Inventory;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ConstraintViolationException;
@@ -20,6 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -141,5 +144,75 @@ public class InventoryServiceImpl implements InventoryService {
             }
             throw ex;
         }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public void updateQuantityByProductId(Long productId, Integer quantity) {
+        log.info("Setting inventory quantity to {} for product: {}", quantity, productId);
+
+        productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+
+        int updated = inventoryRepository.updateQuantityByProductId(productId, quantity);
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Inventory not found for product ID: " + productId);
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public void decrementStock(Long productId, Integer quantity) {
+        log.info("Decrementing stock by {} for product: {}", quantity, productId);
+
+        int updated = inventoryRepository.decrementStock(productId, quantity);
+        if (updated == 0) {
+            throw new InsufficientStockException(
+                    "Insufficient stock for product ID: " + productId + " or inventory not found");
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public void incrementStock(Long productId, Integer quantity) {
+        log.info("Incrementing stock by {} for product: {}", quantity, productId);
+
+        int updated = inventoryRepository.incrementStock(productId, quantity);
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Inventory not found for product ID: " + productId);
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public void deleteInventoryByProductId(Long productId) {
+        log.info("Deleting inventory for product: {}", productId);
+
+        if (!inventoryRepository.existsByProduct_Id(productId)) {
+            throw new ResourceNotFoundException("Inventory not found for product ID: " + productId);
+        }
+
+        inventoryRepository.deleteByProduct_Id(productId);
+        log.info("Inventory deleted for product: {}", productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LowStockDTO> getLowStockItems(Integer threshold) {
+        log.info("Finding low stock items with threshold: {}", threshold);
+
+        List<Object[]> results = inventoryRepository.findLowStockItems(threshold);
+        return results.stream().map(row -> LowStockDTO.builder()
+                .inventoryId(((Number) row[0]).longValue())
+                .quantity(((Number) row[1]).intValue())
+                .location((String) row[2])
+                .productId(((Number) row[3]).longValue())
+                .productName((String) row[4])
+                .build()
+        ).toList();
     }
 }

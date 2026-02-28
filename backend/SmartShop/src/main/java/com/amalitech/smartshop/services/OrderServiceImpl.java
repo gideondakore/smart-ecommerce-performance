@@ -3,7 +3,10 @@ package com.amalitech.smartshop.services;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.OrderItemDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
+import com.amalitech.smartshop.dtos.responses.BestSellerDTO;
+import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
+import com.amalitech.smartshop.dtos.responses.RevenueReportDTO;
 import com.amalitech.smartshop.entities.Inventory;
 import com.amalitech.smartshop.entities.Order;
 import com.amalitech.smartshop.entities.OrderItem;
@@ -16,6 +19,7 @@ import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.interfaces.OrderService;
 import com.amalitech.smartshop.mappers.OrderMapper;
 import com.amalitech.smartshop.repositories.jpa.InventoryJpaRepository;
+import com.amalitech.smartshop.repositories.jpa.OrderItemJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
@@ -26,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +40,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderJpaRepository orderRepository;
+    private final OrderItemJpaRepository orderItemRepository;
     private final ProductJpaRepository productRepository;
     private final UserJpaRepository userRepository;
     private final InventoryJpaRepository inventoryRepository;
@@ -168,5 +174,73 @@ public class OrderServiceImpl implements OrderService {
 
         inventory.setQuantity(inventory.getQuantity() - requestedQuantity);
         return inventory;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderItemResponseDTO> getOrderItems(Long orderId) {
+        log.info("Getting items for order: {}", orderId);
+
+        orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
+
+        List<OrderItem> items = orderItemRepository.findByOrder_Id(orderId);
+        return items.stream().map(item -> {
+            OrderItemResponseDTO dto = new OrderItemResponseDTO();
+            dto.setId(item.getId());
+            dto.setProductId(item.getProduct().getId());
+            dto.setProductName(item.getProduct().getName());
+            dto.setQuantity(item.getQuantity());
+            dto.setTotalPrice(item.getTotalPrice());
+            return dto;
+        }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrderItems(Long orderId) {
+        log.info("Deleting items for order: {}", orderId);
+
+        orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
+
+        orderItemRepository.deleteByOrder_Id(orderId);
+        log.info("Order items deleted successfully for order: {}", orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponseDTO> getHighValueOrders(Double minAmount, Pageable pageable) {
+        log.info("Finding high-value orders with minimum amount: {}", minAmount);
+        return orderRepository.findHighValueOrders(minAmount, pageable).map(orderMapper::toResponseDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BestSellerDTO> getBestSellingProducts(Integer limit) {
+        log.info("Finding top {} best-selling products", limit);
+
+        List<Object[]> results = orderItemRepository.findBestSellingProducts(limit);
+        return results.stream().map(row -> BestSellerDTO.builder()
+                .productId(((Number) row[0]).longValue())
+                .productName((String) row[1])
+                .totalSold(((Number) row[2]).longValue())
+                .totalRevenue(((Number) row[3]).doubleValue())
+                .build()
+        ).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RevenueReportDTO> getRevenueReport(String startDate, String endDate) {
+        log.info("Generating revenue report from {} to {}", startDate, endDate);
+
+        List<Object[]> results = orderRepository.getRevenueReport(startDate, endDate);
+        return results.stream().map(row -> RevenueReportDTO.builder()
+                .orderDate(((java.sql.Date) row[0]).toLocalDate())
+                .orderCount(((Number) row[1]).longValue())
+                .totalRevenue(((Number) row[2]).doubleValue())
+                .build()
+        ).toList();
     }
 }

@@ -5,6 +5,7 @@ import com.amalitech.smartshop.dtos.requests.AddCategoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateCategoryDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.CategoryResponseDTO;
+import com.amalitech.smartshop.dtos.responses.CategoryWithCountDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.CategoryService;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for category management operations.
@@ -86,6 +89,22 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Category deleted successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get category by name")
+    @GetMapping("/name/{name}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> getCategoryByName(@PathVariable String name) {
+        CategoryResponseDTO category = categoryService.getCategoryByName(name);
+        ApiResponse<CategoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Category fetched successfully", category);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get categories with product count")
+    @GetMapping("/with-count")
+    public ResponseEntity<ApiResponse<List<CategoryWithCountDTO>>> getCategoriesWithProductCount() {
+        List<CategoryWithCountDTO> categories = categoryService.getCategoriesWithProductCount();
+        ApiResponse<List<CategoryWithCountDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Categories with count fetched successfully", categories);
         return ResponseEntity.ok(apiResponse);
     }
 }

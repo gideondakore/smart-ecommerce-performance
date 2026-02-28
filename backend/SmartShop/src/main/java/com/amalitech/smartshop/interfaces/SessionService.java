@@ -9,4 +9,7 @@ public interface SessionService {
     Optional<Session> validateSession(String token);
     void deleteSession(String token);
     void deleteAllUserSessions(Long userId);
+    boolean isSessionValid(String token);
+    Long countActiveSessions();
+    int cleanExpiredSessions();
 }

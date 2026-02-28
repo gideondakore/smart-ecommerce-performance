@@ -18,6 +18,19 @@ import java.util.Optional;
 @Repository
 public interface OrderJpaRepository extends JpaRepository<Order, Long> {
 
+    /**
+     * Generates a daily revenue report for a date range using native SQL.
+     * Native SQL is needed because DATE() function and GROUP BY on date extract
+     * is database-specific and not expressible in standard JPQL.
+     */
+    @Query(value = "SELECT DATE(o.created_at) AS order_date, COUNT(o.id) AS order_count, "
+            + "SUM(o.total_amount) AS total_revenue FROM orders o "
+            + "WHERE o.created_at >= CAST(:startDate AS timestamp) "
+            + "AND o.created_at < CAST(:endDate AS timestamp) + INTERVAL '1 day' "
+            + "GROUP BY DATE(o.created_at) ORDER BY order_date",
+            nativeQuery = true)
+    List<Object[]> getRevenueReport(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
     @EntityGraph("Order.withItemsProductAndUser")
     Optional<Order> findById(Long id);
 

@@ -3,6 +3,7 @@ package com.amalitech.smartshop.interfaces;
 import com.amalitech.smartshop.dtos.requests.AddProductDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateProductDTO;
 import com.amalitech.smartshop.dtos.responses.ProductResponseDTO;
+import com.amalitech.smartshop.dtos.responses.ProductStatisticsDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -94,4 +95,20 @@ public interface ProductService {
      * @return a page of product responses matching the criteria
      */
     Page<ProductResponseDTO> searchProducts(String search, Long categoryId, Double minPrice, Double maxPrice, Boolean inStock, Pageable pageable);
+
+    /**
+     * Get products by category with inventory data using JPQL.
+     *
+     * @param categoryId the category ID
+     * @param pageable pagination information
+     * @return a page of product responses with inventory
+     */
+    Page<ProductResponseDTO> getProductsByCategoryWithInventory(Long categoryId, Pageable pageable);
+
+    /**
+     * Get product statistics grouped by category via native SQL.
+     *
+     * @return list of product statistics per category
+     */
+    List<ProductStatisticsDTO> getProductStatistics();
 }

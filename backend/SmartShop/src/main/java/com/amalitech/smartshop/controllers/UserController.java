@@ -7,6 +7,7 @@ import com.amalitech.smartshop.dtos.requests.UserRegistrationDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.LoginResponseDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
+import com.amalitech.smartshop.dtos.responses.UserRoleStatsDTO;
 import com.amalitech.smartshop.dtos.responses.UserSummaryDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.UserService;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -122,6 +125,23 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "User deleted successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Check if email exists")
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiResponse<Boolean>> checkEmailExists(@RequestParam String email) {
+        boolean exists = userService.emailExists(email);
+        ApiResponse<Boolean> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Email check completed", exists);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get user role statistics")
+    @RequiresRole(UserRole.ADMIN)
+    @GetMapping("/role-stats")
+    public ResponseEntity<ApiResponse<List<UserRoleStatsDTO>>> getUserRoleStats() {
+        List<UserRoleStatsDTO> stats = userService.getUserRoleStats();
+        ApiResponse<List<UserRoleStatsDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "User role stats fetched successfully", stats);
         return ResponseEntity.ok(apiResponse);
     }
 }

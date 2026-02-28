@@ -3,6 +3,7 @@ package com.amalitech.smartshop.services;
 import com.amalitech.smartshop.dtos.requests.AddCategoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateCategoryDTO;
 import com.amalitech.smartshop.dtos.responses.CategoryResponseDTO;
+import com.amalitech.smartshop.dtos.responses.CategoryWithCountDTO;
 import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
@@ -109,5 +110,26 @@ public class CategoryServiceImpl implements CategoryService {
                 && categoryRepository.existsByNameIgnoreCase(newName)) {
             throw new ResourceAlreadyExistsException("Category with name '" + newName + "' already exists");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CategoryResponseDTO getCategoryByName(String name) {
+        Category category = categoryRepository.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with name: " + name));
+        return categoryMapper.toResponseDTO(category);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryWithCountDTO> getCategoriesWithProductCount() {
+        List<Object[]> results = categoryRepository.findAllWithProductCount();
+        return results.stream().map(row -> CategoryWithCountDTO.builder()
+                .id(((Number) row[0]).longValue())
+                .name((String) row[1])
+                .description((String) row[2])
+                .productCount(((Number) row[3]).longValue())
+                .build()
+        ).toList();
     }
 }

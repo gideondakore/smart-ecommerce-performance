@@ -6,6 +6,7 @@ import com.amalitech.smartshop.dtos.requests.UpdateProductDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
 import com.amalitech.smartshop.dtos.responses.ProductResponseDTO;
+import com.amalitech.smartshop.dtos.responses.ProductStatisticsDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.ProductService;
 import com.amalitech.smartshop.utils.sorting.SortingService;
@@ -148,6 +149,34 @@ public class ProductController {
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Product deleted successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get products by category with optimized join fetch")
+    @GetMapping("/category/{categoryId}/optimized")
+    public ResponseEntity<ApiResponse<PagedResponse<ProductResponseDTO>>> getProductsByCategoryOptimized(
+            @PathVariable Long categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Page<ProductResponseDTO> products = productService.getProductsByCategoryWithInventory(categoryId, pageable);
+        PagedResponse<ProductResponseDTO> pagedResponse = new PagedResponse<>(
+                products.getContent(),
+                products.getNumber(),
+                (int) products.getTotalElements(),
+                products.getTotalPages(),
+                products.isLast()
+        );
+        ApiResponse<PagedResponse<ProductResponseDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Products fetched successfully", pagedResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get product statistics")
+    @RequiresRole(UserRole.ADMIN)
+    @GetMapping("/statistics")
+    public ResponseEntity<ApiResponse<List<ProductStatisticsDTO>>> getProductStatistics() {
+        List<ProductStatisticsDTO> statistics = productService.getProductStatistics();
+        ApiResponse<List<ProductStatisticsDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Product statistics fetched successfully", statistics);
         return ResponseEntity.ok(apiResponse);
     }
 }

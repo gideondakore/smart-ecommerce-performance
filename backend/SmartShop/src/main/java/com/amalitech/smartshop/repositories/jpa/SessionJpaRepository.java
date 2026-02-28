@@ -18,6 +18,14 @@ import java.util.Optional;
 public interface SessionJpaRepository extends JpaRepository<Session, Long> {
 
     /**
+     * Counts currently active (non-expired) sessions using native SQL.
+     * Native SQL is used because NOW() is a database-specific function
+     * and this simple aggregate is cleaner in raw SQL.
+     */
+    @Query(value = "SELECT COUNT(*) FROM sessions WHERE expires_at > NOW()", nativeQuery = true)
+    Long countActiveSessions();
+
+    /**
      * I find a session by token, eagerly fetching the associated user.
      */
     @EntityGraph(attributePaths = {"user"})

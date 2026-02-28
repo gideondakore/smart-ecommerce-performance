@@ -63,4 +63,24 @@ public class SessionServiceImpl implements SessionService {
         sessionRepository.deleteByUser_Id(userId);
         log.info("Deleted all sessions for user: {}", userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isSessionValid(String token) {
+        return sessionRepository.existsValidSession(token, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public int cleanExpiredSessions() {
+        int deleted = sessionRepository.deleteExpiredSessions(LocalDateTime.now());
+        log.info("Cleaned up {} expired sessions", deleted);
+        return deleted;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long countActiveSessions() {
+        return sessionRepository.countActiveSessions();
+    }
 }

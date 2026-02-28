@@ -5,6 +5,7 @@ import com.amalitech.smartshop.dtos.requests.AddCartItemDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateCartItemDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.CartResponseDTO;
+import com.amalitech.smartshop.dtos.responses.CartSummaryDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.CartService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,6 +88,45 @@ public class CartController {
         Long userId = (Long) httpRequest.getAttribute("authUserId");
         CartResponseDTO cart = cartService.checkoutCart(userId);
         ApiResponse<CartResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Cart checked out successfully", cart);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get cart summary with totals")
+    @GetMapping("/summary")
+    public ResponseEntity<ApiResponse<CartSummaryDTO>> getCartSummary(HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("authUserId");
+        CartSummaryDTO summary = cartService.getCartSummary(userId);
+        ApiResponse<CartSummaryDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Cart summary fetched successfully", summary);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Update cart item quantity by product ID")
+    @PatchMapping("/product/{productId}")
+    public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItemByProduct(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity,
+            HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("authUserId");
+        CartResponseDTO cart = cartService.updateCartItemByProduct(productId, quantity, userId);
+        ApiResponse<CartResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Cart item quantity updated successfully", cart);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Check if cart exists for user")
+    @GetMapping("/exists")
+    public ResponseEntity<ApiResponse<Boolean>> checkCartExists(HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("authUserId");
+        boolean exists = cartService.cartExists(userId);
+        ApiResponse<Boolean> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Cart existence checked", exists);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Delete cart by user")
+    @DeleteMapping("/user")
+    public ResponseEntity<ApiResponse<Void>> deleteCartByUser(HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("authUserId");
+        cartService.deleteCart(userId);
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Cart deleted successfully", null);
         return ResponseEntity.ok(apiResponse);
     }
 }

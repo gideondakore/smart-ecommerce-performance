@@ -22,6 +22,18 @@ import java.util.Optional;
 public interface ProductJpaRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
     /**
+     * Retrieves product statistics grouped by category using native SQL.
+     * Native SQL is used because AVG and COUNT with GROUP BY across a join
+     * is a reporting query best expressed in raw SQL.
+     */
+    @Query(value = "SELECT c.name AS category_name, COUNT(p.id) AS product_count, "
+            + "AVG(p.price) AS avg_price FROM products p "
+            + "JOIN categories c ON p.category_id = c.id "
+            + "GROUP BY c.name ORDER BY product_count DESC",
+            nativeQuery = true)
+    List<Object[]> getProductStatisticsByCategory();
+
+    /**
      * I check if a product exists with the given name (case-insensitive).
      */
     boolean existsByNameIgnoreCase(String name);

@@ -4,12 +4,9 @@ import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  * I provide JPA Specifications for dynamic Product queries.

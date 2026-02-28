@@ -4,6 +4,7 @@ import com.amalitech.smartshop.dtos.requests.LoginDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateUserDTO;
 import com.amalitech.smartshop.dtos.requests.UserRegistrationDTO;
 import com.amalitech.smartshop.dtos.responses.LoginResponseDTO;
+import com.amalitech.smartshop.dtos.responses.UserRoleStatsDTO;
 import com.amalitech.smartshop.dtos.responses.UserSummaryDTO;
 import com.amalitech.smartshop.entities.Order;
 import com.amalitech.smartshop.entities.User;
@@ -128,6 +129,24 @@ public class UserServiceImpl implements UserService {
 
         userRepository.delete(user);
         log.info("User deleted successfully: {}", id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserRoleStatsDTO> getUserRoleStats() {
+        List<Object[]> results = userRepository.getUserCountByRole();
+        return results.stream()
+                .map(row -> UserRoleStatsDTO.builder()
+                        .role((String) row[0])
+                        .userCount(((Number) row[1]).longValue())
+                        .build())
+                .toList();
     }
 
     private String capitalize(String str) {

@@ -17,13 +17,22 @@ import java.util.Optional;
 @Repository
 public interface CartItemJpaRepository extends JpaRepository<CartItem, Long> {
 
+    /**
+     * Retrieves cart item count and total quantity using native SQL.
+     * Native SQL is used because aggregate functions with multiple return columns
+     * cannot be expressed via derived queries or simple JPQL projections.
+     */
+    @Query(value = "SELECT COUNT(*) AS item_count, COALESCE(SUM(ci.quantity), 0) AS total_quantity "
+            + "FROM cart_items ci WHERE ci.cart_id = :cartId", nativeQuery = true)
+    List<Object[]> getCartItemSummary(@Param("cartId") Long cartId);
+
     @EntityGraph(attributePaths = {"product"})
     List<CartItem> findByCart_Id(Long cartId);
 
     @EntityGraph(attributePaths = {"product", "cart"})
-    Optional<CartItem> findByCart_IdAndProduct_Id(Long cartId, Long productId);
+    Optional<CartItem> findByCartIdAndProduct_Id(Long cartId, Long productId);
 
-    boolean existsByCart_IdAndProduct_Id(Long cartId, Long productId);
+    boolean existsByCartIdAndProduct_Id(Long cartId, Long productId);
 
     /**
      * Updates quantity for a specific cart-product pair.
@@ -33,7 +42,7 @@ public interface CartItemJpaRepository extends JpaRepository<CartItem, Long> {
     @Query("UPDATE CartItem ci SET ci.quantity = :quantity WHERE ci.cart.id = :cartId AND ci.product.id = :productId")
     int updateQuantityByCartIdAndProductId(@Param("cartId") Long cartId, @Param("productId") Long productId, @Param("quantity") Integer quantity);
 
-    void deleteByCart_IdAndProduct_Id(Long cartId, Long productId);
+    void deleteByCartIdAndProduct_Id(Long cartId, Long productId);
 
     void deleteByCart_Id(Long cartId);
 }

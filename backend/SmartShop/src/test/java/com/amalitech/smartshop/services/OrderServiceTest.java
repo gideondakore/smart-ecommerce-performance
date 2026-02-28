@@ -29,6 +29,9 @@ class OrderServiceTest {
     private OrderJpaRepository orderRepository;
 
     @Mock
+    private OrderItemJpaRepository orderItemRepository;
+
+    @Mock
     private ProductJpaRepository productRepository;
 
     @Mock
@@ -43,7 +46,7 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        orderService = new OrderServiceImpl(orderRepository, productRepository,
+        orderService = new OrderServiceImpl(orderRepository, orderItemRepository, productRepository,
                                        userRepository, inventoryRepository, orderMapper);
     }
 

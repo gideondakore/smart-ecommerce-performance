@@ -5,6 +5,7 @@ import com.amalitech.smartshop.dtos.requests.AddInventoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateInventoryDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.InventoryResponseDTO;
+import com.amalitech.smartshop.dtos.responses.LowStockDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.InventoryService;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for inventory management operations.
@@ -103,6 +106,58 @@ public class InventoryController {
     public ResponseEntity<ApiResponse<Void>> deleteInventory(@PathVariable Long id) {
         inventoryService.deleteInventory(id);
         ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Inventory deleted successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Update stock quantity by product ID")
+    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PutMapping("/product/{productId}/stock")
+    public ResponseEntity<ApiResponse<Void>> updateStockByProductId(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity) {
+        inventoryService.updateQuantityByProductId(productId, quantity);
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock updated successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Decrement stock for a product")
+    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PostMapping("/product/{productId}/decrement")
+    public ResponseEntity<ApiResponse<Void>> decrementStock(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity) {
+        inventoryService.decrementStock(productId, quantity);
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock decremented successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Increment stock for a product")
+    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PostMapping("/product/{productId}/increment")
+    public ResponseEntity<ApiResponse<Void>> incrementStock(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity) {
+        inventoryService.incrementStock(productId, quantity);
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock incremented successfully", null);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get low stock items")
+    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @GetMapping("/low-stock")
+    public ResponseEntity<ApiResponse<List<LowStockDTO>>> getLowStockItems(
+            @RequestParam(defaultValue = "10") int threshold) {
+        List<LowStockDTO> lowStockItems = inventoryService.getLowStockItems(threshold);
+        ApiResponse<List<LowStockDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Low stock items fetched successfully", lowStockItems);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Delete inventory by product ID")
+    @RequiresRole(UserRole.ADMIN)
+    @DeleteMapping("/product/{productId}")
+    public ResponseEntity<ApiResponse<Void>> deleteByProductId(@PathVariable Long productId) {
+        inventoryService.deleteInventoryByProductId(productId);
+        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Inventory deleted by product successfully", null);
         return ResponseEntity.ok(apiResponse);
     }
 }
