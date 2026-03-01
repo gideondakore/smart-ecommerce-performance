@@ -237,7 +237,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<Object[]> results = orderRepository.getRevenueReport(startDate, endDate);
         return results.stream().map(row -> RevenueReportDTO.builder()
-                .orderDate(((java.sql.Date) row[0]).toLocalDate())
+                .orderDate((java.time.LocalDate) row[0])
                 .orderCount(((Number) row[1]).longValue())
                 .totalRevenue(((Number) row[2]).doubleValue())
                 .build()

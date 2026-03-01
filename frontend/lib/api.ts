@@ -315,17 +315,26 @@ export const inventoryApi = {
   delete: (id: number) =>
     fetchApi<void>(`/inventory/${id}`, { method: "DELETE" }),
   updateStockByProductId: (productId: number, quantity: number) =>
-    fetchApi<void>(`/inventory/product/${productId}/stock?quantity=${quantity}`, {
-      method: "PUT",
-    }),
+    fetchApi<void>(
+      `/inventory/product/${productId}/stock?quantity=${quantity}`,
+      {
+        method: "PUT",
+      },
+    ),
   decrementStock: (productId: number, quantity: number) =>
-    fetchApi<void>(`/inventory/product/${productId}/decrement?quantity=${quantity}`, {
-      method: "POST",
-    }),
+    fetchApi<void>(
+      `/inventory/product/${productId}/decrement?quantity=${quantity}`,
+      {
+        method: "POST",
+      },
+    ),
   incrementStock: (productId: number, quantity: number) =>
-    fetchApi<void>(`/inventory/product/${productId}/increment?quantity=${quantity}`, {
-      method: "POST",
-    }),
+    fetchApi<void>(
+      `/inventory/product/${productId}/increment?quantity=${quantity}`,
+      {
+        method: "POST",
+      },
+    ),
   getLowStock: (threshold = 10) =>
     fetchApi<any[]>(`/inventory/low-stock?threshold=${threshold}`),
   deleteByProductId: (productId: number) =>
@@ -357,9 +366,7 @@ export const reviewApi = {
   getByUserAndProduct: (userId: number, productId: number) =>
     fetchApi<any>(`/reviews/user/${userId}/product/${productId}`),
   hasUserReviewed: (userId: number, productId: number) =>
-    fetchApi<boolean>(
-      `/reviews/check?userId=${userId}&productId=${productId}`,
-    ),
+    fetchApi<boolean>(`/reviews/check?userId=${userId}&productId=${productId}`),
   getRatingDistribution: (productId: number) =>
     fetchApi<any[]>(`/reviews/product/${productId}/rating`),
   getReviewSummary: (productId: number) =>

@@ -149,7 +149,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public void updateQuantityByProductId(Long productId, Integer quantity) {
+    public InventoryResponseDTO updateQuantityByProductId(Long productId, Integer quantity) {
         log.info("Setting inventory quantity to {} for product: {}", quantity, productId);
 
         productRepository.findById(productId)
@@ -159,12 +159,16 @@ public class InventoryServiceImpl implements InventoryService {
         if (updated == 0) {
             throw new ResourceNotFoundException("Inventory not found for product ID: " + productId);
         }
+
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for product ID: " + productId));
+        return inventoryMapper.toResponseDTO(inventory);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public void decrementStock(Long productId, Integer quantity) {
+    public InventoryResponseDTO decrementStock(Long productId, Integer quantity) {
         log.info("Decrementing stock by {} for product: {}", quantity, productId);
 
         int updated = inventoryRepository.decrementStock(productId, quantity);
@@ -172,18 +176,26 @@ public class InventoryServiceImpl implements InventoryService {
             throw new InsufficientStockException(
                     "Insufficient stock for product ID: " + productId + " or inventory not found");
         }
+
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for product ID: " + productId));
+        return inventoryMapper.toResponseDTO(inventory);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public void incrementStock(Long productId, Integer quantity) {
+    public InventoryResponseDTO incrementStock(Long productId, Integer quantity) {
         log.info("Incrementing stock by {} for product: {}", quantity, productId);
 
         int updated = inventoryRepository.incrementStock(productId, quantity);
         if (updated == 0) {
             throw new ResourceNotFoundException("Inventory not found for product ID: " + productId);
         }
+
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for product ID: " + productId));
+        return inventoryMapper.toResponseDTO(inventory);
     }
 
     @Override

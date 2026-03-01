@@ -18,7 +18,7 @@ public interface CartJpaRepository extends JpaRepository<Cart, Long> {
      */
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT c.id, c.user_id, COALESCE(SUM(ci.quantity * p.price), 0) AS total_amount "
-                    + "FROM carts c LEFT JOIN cart_items ci ON c.id = ci.cart_id "
+                    + "FROM cart c LEFT JOIN cart_items ci ON c.id = ci.cart_id "
                     + "LEFT JOIN products p ON ci.product_id = p.id "
                     + "WHERE c.user_id = :userId GROUP BY c.id, c.user_id",
             nativeQuery = true)

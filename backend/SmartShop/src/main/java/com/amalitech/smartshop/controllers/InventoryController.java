@@ -112,33 +112,33 @@ public class InventoryController {
     @Operation(summary = "Update stock quantity by product ID")
     @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
     @PutMapping("/product/{productId}/stock")
-    public ResponseEntity<ApiResponse<Void>> updateStockByProductId(
+    public ResponseEntity<ApiResponse<InventoryResponseDTO>> updateStockByProductId(
             @PathVariable Long productId,
             @RequestParam Integer quantity) {
-        inventoryService.updateQuantityByProductId(productId, quantity);
-        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock updated successfully", null);
+        InventoryResponseDTO inventory = inventoryService.updateQuantityByProductId(productId, quantity);
+        ApiResponse<InventoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock updated successfully", inventory);
         return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(summary = "Decrement stock for a product")
     @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
     @PostMapping("/product/{productId}/decrement")
-    public ResponseEntity<ApiResponse<Void>> decrementStock(
+    public ResponseEntity<ApiResponse<InventoryResponseDTO>> decrementStock(
             @PathVariable Long productId,
             @RequestParam Integer quantity) {
-        inventoryService.decrementStock(productId, quantity);
-        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock decremented successfully", null);
+        InventoryResponseDTO inventory = inventoryService.decrementStock(productId, quantity);
+        ApiResponse<InventoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock decremented successfully", inventory);
         return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(summary = "Increment stock for a product")
     @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
     @PostMapping("/product/{productId}/increment")
-    public ResponseEntity<ApiResponse<Void>> incrementStock(
+    public ResponseEntity<ApiResponse<InventoryResponseDTO>> incrementStock(
             @PathVariable Long productId,
             @RequestParam Integer quantity) {
-        inventoryService.incrementStock(productId, quantity);
-        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock incremented successfully", null);
+        InventoryResponseDTO inventory = inventoryService.incrementStock(productId, quantity);
+        ApiResponse<InventoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Stock incremented successfully", inventory);
         return ResponseEntity.ok(apiResponse);
     }
 

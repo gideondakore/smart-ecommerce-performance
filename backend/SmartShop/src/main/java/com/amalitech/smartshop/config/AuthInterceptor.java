@@ -29,18 +29,19 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        // Allow public GET requests for products and categories
+        // Allow public GET requests for products and categories (auth is optional)
         String path = request.getRequestURI();
         String method = request.getMethod();
-        if ("GET".equalsIgnoreCase(method) && 
-            (path.startsWith("/api/products") || path.startsWith("/api/categories"))) {
-            return true;
-        }
+        boolean isPublicGet = "GET".equalsIgnoreCase(method)
+                && (path.startsWith("/api/products") || path.startsWith("/api/categories"));
 
         String authHeader = request.getHeader("Authorization");
         log.info("Auth Header: {}", authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (isPublicGet) {
+                return true;
+            }
             throw new UnauthorizedException("Missing or invalid Authorization header");
         }
 

@@ -76,24 +76,27 @@ public interface InventoryService {
      *
      * @param productId the product ID
      * @param quantity the new quantity
+     * @return the updated inventory response
      */
-    void updateQuantityByProductId(Long productId, Integer quantity);
+    InventoryResponseDTO updateQuantityByProductId(Long productId, Integer quantity);
 
     /**
      * Atomically decrement stock for a product.
      *
      * @param productId the product ID
      * @param quantity the quantity to decrement
+     * @return the updated inventory response
      */
-    void decrementStock(Long productId, Integer quantity);
+    InventoryResponseDTO decrementStock(Long productId, Integer quantity);
 
     /**
      * Atomically increment stock for a product.
      *
      * @param productId the product ID
      * @param quantity the quantity to increment
+     * @return the updated inventory response
      */
-    void incrementStock(Long productId, Integer quantity);
+    InventoryResponseDTO incrementStock(Long productId, Integer quantity);
 
     /**
      * Delete inventory by product ID.
