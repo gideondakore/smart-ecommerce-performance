@@ -1,10 +1,10 @@
 package com.amalitech.smartshop.config;
 
-import com.amalitech.smartshop.entities.Session;
-import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.UnauthorizedException;
-import com.amalitech.smartshop.interfaces.SessionService;
+import com.amalitech.smartshop.security.JwtService;
+import com.amalitech.smartshop.security.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.server.WebGraphQlInterceptor;
 import org.springframework.graphql.server.WebGraphQlRequest;
 import org.springframework.graphql.server.WebGraphQlResponse;
@@ -14,14 +14,16 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 /**
- * GraphQL interceptor for authentication.
- * Validates Bearer tokens and sets authenticated user context for GraphQL operations.
+ * GraphQL interceptor for JWT-based authentication.
+ * Validates Bearer JWT tokens and sets authenticated user context for GraphQL operations.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
 
-    private final SessionService sessionService;
+    private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
     private static final List<String> PUBLIC_QUERIES = List.of("allProducts", "productById", "allCategories", "categoryById");
     private static final List<String> PUBLIC_MUTATIONS = List.of("login", "register");
 
@@ -30,12 +32,10 @@ public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
         String authHeader = request.getHeaders().getFirst("Authorization");
         String document = request.getDocument();
 
-        // Allow introspection queries (used by GraphQL clients like GraphiQL, Apollo, etc.)
         if (document != null && (document.contains("__schema") || document.contains("IntrospectionQuery"))) {
             return chain.next(request);
         }
 
-        // Check if it's a public query or mutation
         boolean isPublic = PUBLIC_QUERIES.stream().anyMatch(op -> document != null && document.contains(op)) ||
                 PUBLIC_MUTATIONS.stream().anyMatch(op -> document != null && document.contains(op));
 
@@ -49,18 +49,21 @@ public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
         String token = authHeader.substring(7);
 
         try {
-            // Validate session using SessionService (same as REST API)
-            Session session = sessionService.validateSession(token)
-                    .orElseThrow(() -> new UnauthorizedException("Invalid or expired session"));
+            if (tokenBlacklistService.isRevoked(token)) {
+                return Mono.error(new UnauthorizedException("Token has been revoked"));
+            }
 
-            // Get user from session
-            User user = session.getUser();
+            String username = jwtService.extractUsername(token);
+            String role = jwtService.extractRole(token);
 
-            // Set user context for GraphQL resolvers
+            if (username == null || jwtService.isTokenExpired(token)) {
+                return Mono.error(new UnauthorizedException("Invalid or expired token"));
+            }
+
             request.configureExecutionInput((executionInput, builder) ->
                     builder.graphQLContext(context -> {
-                        context.put("userId", user.getId());
-                        context.put("userRole", user.getRole().name());
+                        context.put("username", username);
+                        context.put("userRole", role);
                     }).build()
             );
 
@@ -70,6 +73,12 @@ public class GraphQLAuthInterceptor implements WebGraphQlInterceptor {
                 return chain.next(request);
             }
             return Mono.error(e);
+        } catch (Exception e) {
+            log.warn("JWT validation failed for GraphQL request: {}", e.getMessage());
+            if (isPublic) {
+                return chain.next(request);
+            }
+            return Mono.error(new UnauthorizedException("Invalid token"));
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.amalitech.smartshop.utils;
 
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  * Utility to generate BCrypt password hashes.
@@ -8,12 +8,12 @@ import org.mindrot.jbcrypt.BCrypt;
  */
 public class PasswordHashGenerator {
     public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String password = "vendor123";
-        
-        // Generate two different hashes for the two vendors
-        String hash1 = BCrypt.hashpw(password, BCrypt.gensalt());
-        String hash2 = BCrypt.hashpw(password, BCrypt.gensalt());
-        
+
+        String hash1 = encoder.encode(password);
+        String hash2 = encoder.encode(password);
+
         System.out.println("Hash 1 for vendor@smartshop.com:");
         System.out.println(hash1);
         System.out.println();

@@ -18,11 +18,11 @@ import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final OrderJpaRepository orderRepository;
     private final SessionService sessionService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(capitalize(user.getFirstName()));
         user.setLastName(capitalize(user.getLastName()));
         user.setEmail(user.getEmail().toLowerCase());
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User savedUser = userRepository.save(user);
         LoginResponseDTO responseDTO = userMapper.toResponseDTO(savedUser);
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(loginDTO.getEmail().toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginDTO.getEmail()));
 
-        if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
 

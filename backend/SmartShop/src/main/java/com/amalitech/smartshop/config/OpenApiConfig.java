@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
@@ -89,6 +90,12 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         Components components = new Components();
+
+        components.addSecuritySchemes("BearerAuth", new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .description("Enter your JWT access token"));
 
         components.addResponses("BadRequest", new io.swagger.v3.oas.models.responses.ApiResponse()
                 .description("Invalid Request - Input validation failed or request body is improperly formatted")
