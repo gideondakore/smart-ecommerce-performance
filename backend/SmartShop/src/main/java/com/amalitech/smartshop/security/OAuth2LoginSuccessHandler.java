@@ -2,7 +2,6 @@ package com.amalitech.smartshop.security;
 
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final JwtService jwtService;
     private final UserJpaRepository userRepository;
-    private final ObjectMapper objectMapper;
 
     @Value("${oauth2.redirect-uri:http://localhost:3000/login}")
     private String frontendRedirectUri;
