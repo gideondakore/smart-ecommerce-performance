@@ -1,15 +1,14 @@
 package com.amalitech.smartshop.controllers;
 
-import com.amalitech.smartshop.config.RequiresRole;
 import com.amalitech.smartshop.dtos.requests.AddInventoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateInventoryDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.InventoryResponseDTO;
 import com.amalitech.smartshop.dtos.responses.LowStockDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
-import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.InventoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,16 +25,17 @@ import java.util.List;
  * REST controller for inventory management operations.
  * Handles inventory tracking and adjustments.
  */
-@Tag(name = "Inventory Management", description = "APIs for managing product inventory")
+@Tag(name = "Inventory", description = "APIs for managing product inventory")
 @RestController
 @RequestMapping("/api/inventory")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class InventoryController {
 
     private final InventoryService inventoryService;
 
     @Operation(summary = "Add inventory")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PostMapping
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> addInventory(@Valid @RequestBody AddInventoryDTO request) {
         InventoryResponseDTO inventory = inventoryService.addInventory(request);
@@ -43,7 +44,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Get all inventories")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<InventoryResponseDTO>>> getAllInventories(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -79,7 +80,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Update inventory")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> updateInventory(
             @PathVariable Long id,
@@ -90,7 +91,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Adjust inventory quantity")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> adjustInventoryQuantity(
             @PathVariable Long id,
@@ -101,7 +102,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Delete inventory")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteInventory(@PathVariable Long id) {
         inventoryService.deleteInventory(id);
@@ -110,7 +111,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Update stock quantity by product ID")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PutMapping("/product/{productId}/stock")
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> updateStockByProductId(
             @PathVariable Long productId,
@@ -121,7 +122,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Decrement stock for a product")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PostMapping("/product/{productId}/decrement")
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> decrementStock(
             @PathVariable Long productId,
@@ -132,7 +133,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Increment stock for a product")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @PostMapping("/product/{productId}/increment")
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> incrementStock(
             @PathVariable Long productId,
@@ -143,7 +144,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Get low stock items")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @GetMapping("/low-stock")
     public ResponseEntity<ApiResponse<List<LowStockDTO>>> getLowStockItems(
             @RequestParam(defaultValue = "10") int threshold) {
@@ -153,7 +154,7 @@ public class InventoryController {
     }
 
     @Operation(summary = "Delete inventory by product ID")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/product/{productId}")
     public ResponseEntity<ApiResponse<Void>> deleteByProductId(@PathVariable Long productId) {
         inventoryService.deleteInventoryByProductId(productId);

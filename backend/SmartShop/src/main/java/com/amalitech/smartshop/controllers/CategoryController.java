@@ -1,15 +1,14 @@
 package com.amalitech.smartshop.controllers;
 
-import com.amalitech.smartshop.config.RequiresRole;
 import com.amalitech.smartshop.dtos.requests.AddCategoryDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateCategoryDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.CategoryResponseDTO;
 import com.amalitech.smartshop.dtos.responses.CategoryWithCountDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
-import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +33,8 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @Operation(summary = "Add a new category")
-    @RequiresRole(UserRole.ADMIN)
+    @Operation(summary = "Add a new category", security = @SecurityRequirement(name = "BearerAuth"))
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> addCategory(@Valid @RequestBody AddCategoryDTO request) {
         // I create a new category and return the response
@@ -71,8 +71,8 @@ public class CategoryController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(summary = "Update a category")
-    @RequiresRole(UserRole.ADMIN)
+    @Operation(summary = "Update a category", security = @SecurityRequirement(name = "BearerAuth"))
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(
             @PathVariable Long id,
@@ -83,8 +83,8 @@ public class CategoryController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(summary = "Delete a category")
-    @RequiresRole(UserRole.ADMIN)
+    @Operation(summary = "Delete a category", security = @SecurityRequirement(name = "BearerAuth"))
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);

@@ -1,6 +1,5 @@
 package com.amalitech.smartshop.controllers;
 
-import com.amalitech.smartshop.config.RequiresRole;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
@@ -9,18 +8,20 @@ import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
 import com.amalitech.smartshop.dtos.responses.RevenueReportDTO;
-import com.amalitech.smartshop.enums.UserRole;
+import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.interfaces.OrderService;
 import com.amalitech.smartshop.utils.sorting.SortingService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -30,30 +31,30 @@ import java.util.List;
  * REST controller for order management operations.
  * Handles order creation, retrieval, and status updates.
  */
-@Tag(name = "Order Management", description = "APIs for managing orders")
+@Tag(name = "Orders", description = "APIs for managing orders")
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "BearerAuth")
 public class OrderController {
 
     private final OrderService orderService;
     private final SortingService sortingService;
 
     @Operation(summary = "Create a new order")
-    @RequiresRole({UserRole.CUSTOMER, UserRole.ADMIN})
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(
             @Valid @RequestBody AddOrderDTO request,
-            HttpServletRequest httpRequest) {
-        Long authUserId = (Long) httpRequest.getAttribute("authUserId");
-        request.setUserId(authUserId);
+            @AuthenticationPrincipal User currentUser) {
+        request.setUserId(currentUser.getId());
         OrderResponseDTO order = orderService.createOrder(request);
         ApiResponse<OrderResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Order created successfully", order);
         return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(summary = "Get all orders")
-    @RequiresRole({UserRole.ADMIN, UserRole.VENDOR})
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getAllOrders(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -89,14 +90,14 @@ public class OrderController {
     }
 
     @Operation(summary = "Get orders by user")
-    @RequiresRole({UserRole.CUSTOMER, UserRole.ADMIN})
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @GetMapping("/user")
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getOrdersByUserId(
-            HttpServletRequest httpRequest,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        Long authUserId = (Long) httpRequest.getAttribute("authUserId");
+        Long authUserId = currentUser.getId();
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         Page<OrderResponseDTO> orders = orderService.getOrdersByUserId(authUserId, pageable);
         PagedResponse<OrderResponseDTO> pagedResponse = new PagedResponse<>(
@@ -120,7 +121,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Update order status")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(
             @PathVariable Long id,
@@ -132,7 +133,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Delete an order")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
@@ -149,7 +150,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Get high value orders")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/high-value")
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getHighValueOrders(
             @RequestParam Double minAmount,
@@ -169,7 +170,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Get revenue report")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/revenue")
     public ResponseEntity<ApiResponse<List<RevenueReportDTO>>> getRevenueReport(
             @RequestParam String startDate,
@@ -180,7 +181,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Get best selling products")
-    @RequiresRole(UserRole.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/best-sellers")
     public ResponseEntity<ApiResponse<List<BestSellerDTO>>> getBestSellers(
             @RequestParam(defaultValue = "10") int limit) {

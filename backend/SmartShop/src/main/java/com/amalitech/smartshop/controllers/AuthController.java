@@ -1,69 +1,97 @@
 package com.amalitech.smartshop.controllers;
 
-import com.amalitech.smartshop.config.RequiresRole;
+import com.amalitech.smartshop.dtos.requests.AuthLoginRequest;
+import com.amalitech.smartshop.dtos.requests.AuthRegisterRequest;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
-import com.amalitech.smartshop.enums.UserRole;
-import com.amalitech.smartshop.interfaces.SessionService;
+import com.amalitech.smartshop.dtos.responses.AuthResponse;
+import com.amalitech.smartshop.security.AuthService;
+import com.amalitech.smartshop.security.JwtService;
+import com.amalitech.smartshop.security.TokenBlacklistService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Authentication", description = "APIs for authentication operations")
+/**
+ * REST controller for JWT-based authentication operations.
+ * Provides register, login, logout, token refresh, and validation endpoints.
+ */
+@Tag(name = "Auth", description = "JWT Authentication APIs")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
-    private final SessionService sessionService;
+    private final AuthService authService;
+    private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    @Operation(summary = "Logout user")
+    @Operation(summary = "Register a new user")
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody AuthRegisterRequest request) {
+        AuthResponse authResponse = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "User registered successfully", authResponse));
+    }
+
+    @Operation(summary = "Login with email and password")
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody AuthLoginRequest request) {
+        AuthResponse authResponse = authService.login(request);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Login successful", authResponse));
+    }
+
+    @Operation(summary = "Refresh access token", security = @SecurityRequirement(name = "BearerAuth"))
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        String refreshToken = extractToken(authHeader);
+        AuthResponse authResponse = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Token refreshed successfully", authResponse));
+    }
+
+    @Operation(summary = "Logout user (revoke current token)", security = @SecurityRequirement(name = "BearerAuth"))
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
-        String token = (String) request.getAttribute("sessionToken");
+        String token = extractTokenFromRequest(request);
         if (token != null) {
-            sessionService.deleteSession(token);
+            authService.logout(token);
         }
-        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Logged out successfully", null);
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Logged out successfully", null));
     }
 
-    @Operation(summary = "Logout from all devices")
-    @PostMapping("/logout-all")
-    public ResponseEntity<ApiResponse<Void>> logoutAll(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("authUserId");
-        sessionService.deleteAllUserSessions(userId);
-        ApiResponse<Void> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Logged out from all devices", null);
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    @Operation(summary = "Validate a session token")
+    @Operation(summary = "Validate a JWT token", security = @SecurityRequirement(name = "BearerAuth"))
     @GetMapping("/validate")
-    public ResponseEntity<ApiResponse<Boolean>> validateSession(HttpServletRequest request) {
-        String token = (String) request.getAttribute("sessionToken");
-        boolean valid = token != null && sessionService.isSessionValid(token);
-        ApiResponse<Boolean> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Session validation completed", valid);
-        return ResponseEntity.ok(apiResponse);
+    public ResponseEntity<ApiResponse<Boolean>> validateToken(HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        boolean valid = token != null && jwtService.isTokenStructurallyValid(token);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Token validation completed", valid));
     }
 
-    @Operation(summary = "Clean expired sessions")
-    @RequiresRole(UserRole.ADMIN)
-    @DeleteMapping("/sessions/expired")
-    public ResponseEntity<ApiResponse<Integer>> cleanExpiredSessions() {
-        int deleted = sessionService.cleanExpiredSessions();
-        ApiResponse<Integer> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), deleted + " expired sessions cleaned", deleted);
-        return ResponseEntity.ok(apiResponse);
+    @Operation(summary = "Get blacklist size (admin only)", security = @SecurityRequirement(name = "BearerAuth"))
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/blacklist/size")
+    public ResponseEntity<ApiResponse<Integer>> getBlacklistSize() {
+        int size = tokenBlacklistService.getBlacklistSize();
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Blacklist size fetched", size));
     }
 
-    @Operation(summary = "Get active session count")
-    @RequiresRole(UserRole.ADMIN)
-    @GetMapping("/sessions/active-count")
-    public ResponseEntity<ApiResponse<Long>> getActiveSessionCount() {
-        Long count = sessionService.countActiveSessions();
-        ApiResponse<Long> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Active session count fetched", count);
-        return ResponseEntity.ok(apiResponse);
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        return extractToken(authHeader);
+    }
+
+    private String extractToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
 }
