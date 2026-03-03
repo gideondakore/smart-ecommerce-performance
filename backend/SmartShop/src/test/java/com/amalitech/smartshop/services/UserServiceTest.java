@@ -14,9 +14,9 @@ import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
 import com.amalitech.smartshop.interfaces.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mindrot.jbcrypt.BCrypt;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 import java.util.Collections;
@@ -40,10 +40,13 @@ class UserServiceTest {
     @Mock
     private SessionService sessionService;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        userService = new UserServiceImpl(userRepository, userMapper, orderRepository, sessionService);
+        userService = new UserServiceImpl(userRepository, userMapper, orderRepository, sessionService, passwordEncoder);
     }
 
     @Test
@@ -66,6 +69,7 @@ class UserServiceTest {
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
         when(userMapper.toEntity(dto)).thenReturn(entity);
+        when(passwordEncoder.encode("password123")).thenReturn("$2a$10$encoded");
         when(userRepository.save(any(User.class))).thenReturn(savedEntity);
         when(userMapper.toResponseDTO(savedEntity)).thenReturn(responseDTO);
         when(sessionService.createSession(1L)).thenReturn("test-token");
@@ -73,6 +77,7 @@ class UserServiceTest {
         LoginResponseDTO result = userService.addUser(dto);
 
         assertNotNull(result);
+        verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
     }
 
@@ -92,7 +97,7 @@ class UserServiceTest {
     void loginUser_Success() {
         String email = "test@example.com";
         String password = "password123";
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        String hashedPassword = "$2a$10$hashvalue";
 
         User user = new User();
         user.setId(1L);
@@ -107,6 +112,7 @@ class UserServiceTest {
         expectedResponse.setId(1L);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(password, hashedPassword)).thenReturn(true);
         when(userMapper.toResponseDTO(user)).thenReturn(expectedResponse);
         when(sessionService.createSession(1L)).thenReturn("test-token");
 
@@ -119,8 +125,7 @@ class UserServiceTest {
     @Test
     void loginUser_InvalidPassword() {
         String email = "test@example.com";
-        String password = "password123";
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        String hashedPassword = "$2a$10$hashvalue";
 
         User user = new User();
         user.setPassword(hashedPassword);
@@ -130,6 +135,7 @@ class UserServiceTest {
         loginDTO.setPassword("wrong");
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong", hashedPassword)).thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> userService.loginUser(loginDTO));
     }
