@@ -39,8 +39,8 @@ public class InventoryController {
     @PostMapping
     public ResponseEntity<ApiResponse<InventoryResponseDTO>> addInventory(@Valid @RequestBody AddInventoryDTO request) {
         InventoryResponseDTO inventory = inventoryService.addInventory(request);
-        ApiResponse<InventoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Inventory added successfully", inventory);
-        return ResponseEntity.ok(apiResponse);
+        ApiResponse<InventoryResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.CREATED.value(), "Inventory added successfully", inventory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @Operation(summary = "Get all inventories")

@@ -49,12 +49,12 @@ public class OrderController {
             @AuthenticationPrincipal User currentUser) {
         request.setUserId(currentUser.getId());
         OrderResponseDTO order = orderService.createOrder(request);
-        ApiResponse<OrderResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Order created successfully", order);
-        return ResponseEntity.ok(apiResponse);
+        ApiResponse<OrderResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.CREATED.value(), "Order created successfully", order);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @Operation(summary = "Get all orders")
-    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR', 'STAFF')")
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponseDTO>>> getAllOrders(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -121,7 +121,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Update order status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(
             @PathVariable Long id,

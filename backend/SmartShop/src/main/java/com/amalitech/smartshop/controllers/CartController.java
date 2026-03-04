@@ -43,7 +43,8 @@ public class CartController {
             @Valid @RequestBody AddCartItemDTO request,
             @AuthenticationPrincipal User currentUser) {
         CartResponseDTO cart = cartService.addItemToCart(request, currentUser.getId());
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Item added to cart successfully", cart));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Item added to cart successfully", cart));
     }
 
     @Operation(summary = "Update cart item quantity")

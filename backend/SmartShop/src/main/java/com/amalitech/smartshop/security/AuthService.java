@@ -56,8 +56,8 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse login(AuthLoginRequest request) {
-        log.info("Login attempt for email: {}", request.getEmail());
+    public AuthResponse login(AuthLoginRequest request, String clientIpAddress) {
+        log.info("Login attempt for email: {} from IP: {}", request.getEmail(), clientIpAddress);
 
         try {
             authenticationManager.authenticate(
@@ -67,7 +67,7 @@ public class AuthService {
                     )
             );
         } catch (BadCredentialsException exception) {
-            log.warn("Login failed for user: {} — invalid credentials", request.getEmail());
+            log.warn("Login failed for user: {} from IP: {} — invalid credentials", request.getEmail(), clientIpAddress);
             throw new BadCredentialsException("Invalid email or password");
         }
 
@@ -77,7 +77,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        log.info("Login success for user: {}", user.getEmail());
+        log.info("Login success for user: {} from IP: {}", user.getEmail(), clientIpAddress);
 
         return buildAuthResponse(user, accessToken, refreshToken);
     }

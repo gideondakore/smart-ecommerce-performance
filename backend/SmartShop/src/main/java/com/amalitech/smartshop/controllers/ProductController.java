@@ -45,7 +45,8 @@ public class ProductController {
             @Valid @RequestBody AddProductDTO request,
             @AuthenticationPrincipal User currentUser) {
         ProductResponseDTO product = productService.addProduct(request, currentUser.getId(), currentUser.getRole().name());
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Product added successfully", product));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Product added successfully", product));
     }
 
     @Operation(summary = "Add multiple products", security = @SecurityRequirement(name = "BearerAuth"))
@@ -57,8 +58,9 @@ public class ProductController {
         List<ProductResponseDTO> products = requests.stream()
                 .map(dto -> productService.addProduct(dto, currentUser.getId(), currentUser.getRole().name()))
                 .toList();
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(),
-                products.size() + " products added successfully", products));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(),
+                        products.size() + " products added successfully", products));
     }
 
     @Operation(summary = "Get all products")

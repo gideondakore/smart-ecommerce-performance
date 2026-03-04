@@ -43,8 +43,8 @@ public class ReviewController {
             @Valid @RequestBody AddReviewDTO request,
             @AuthenticationPrincipal User currentUser) {
         ReviewResponseDTO review = reviewService.addReview(request, currentUser.getId());
-        ApiResponse<ReviewResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Review added successfully", review);
-        return ResponseEntity.ok(apiResponse);
+        ApiResponse<ReviewResponseDTO> apiResponse = new ApiResponse<>(HttpStatus.CREATED.value(), "Review added successfully", review);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @Operation(summary = "Update a review", security = @SecurityRequirement(name = "BearerAuth"))

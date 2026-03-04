@@ -281,11 +281,89 @@ Order creation is transactional:
 
 ## Security Roles
 
-| Role         | Permissions                                           |
-| :----------- | :---------------------------------------------------- |
-| **ADMIN**    | Full access to all resources and performance metrics. |
-| **VENDOR**   | Manage own products and inventory.                    |
-| **CUSTOMER** | Browse products and manage personal orders.           |
+| Role         | Permissions                                               |
+| :----------- | :-------------------------------------------------------- |
+| **ADMIN**    | Full access to all resources and performance metrics.     |
+| **VENDOR**   | Manage own products and inventory.                        |
+| **STAFF**    | View all orders, update order status.                     |
+| **CUSTOMER** | Browse products, manage cart, and manage personal orders. |
+
+---
+
+## Authentication
+
+### JWT Authentication (Stateless)
+
+All API endpoints (except public ones) require a valid JWT in the `Authorization` header:
+
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+**Auth Endpoints:**
+
+| Method | Endpoint             | Description              | Auth Required |
+| ------ | -------------------- | ------------------------ | ------------- |
+| POST   | `/api/auth/register` | Register a new user      | No            |
+| POST   | `/api/auth/login`    | Login and get JWT tokens | No            |
+| POST   | `/api/auth/refresh`  | Refresh access token     | Bearer Token  |
+| POST   | `/api/auth/logout`   | Logout (revoke token)    | Bearer Token  |
+| GET    | `/api/auth/validate` | Validate a JWT token     | Bearer Token  |
+
+### Google OAuth2 Login
+
+Users can authenticate via Google:
+
+1. Redirect to: `GET /oauth2/authorization/google`
+2. After Google consent, the user is redirected to the frontend with JWT tokens in the URL query parameters.
+
+---
+
+## CORS & CSRF Configuration
+
+### CORS
+
+CORS is configured globally to allow cross-origin requests from trusted frontend origins:
+
+- **Allowed Origins:** `http://localhost:3000`, `http://localhost:3001`
+- **Allowed Methods:** `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
+- **Allowed Headers:** `Authorization`, `Content-Type`, `Accept`, `X-Requested-With`
+- **Credentials:** Enabled (cookies/auth headers are forwarded)
+
+In production, replace `localhost` origins with actual deployed frontend domains.
+
+### CSRF (Cross-Site Request Forgery)
+
+#### When to Disable CSRF
+
+CSRF protection should be **disabled** for **stateless REST APIs** that use JWT Bearer tokens in the `Authorization` header. Since JWTs are not automatically attached to requests by the browser (unlike cookies), the CSRF attack vector does not apply. An attacker's malicious page cannot forge a request with the victim's JWT because it has no access to the token stored in `localStorage` or memory.
+
+This is the default for all `/api/**` endpoints in this application.
+
+#### When to Enable CSRF
+
+CSRF protection should be **enabled** for any endpoint that:
+
+- Uses **session-based or cookie-based authentication**
+- Serves **HTML forms** that the browser submits automatically
+- Performs **state-changing operations** (POST, PUT, DELETE) via form submissions
+
+When CSRF is enabled, the server generates a unique token per session. This token must be included in every state-changing request (as a hidden form field `_csrf` or in the `X-CSRF-TOKEN` header). The server rejects any request without a valid CSRF token.
+
+#### CSRF Demo Endpoints
+
+This application includes a demo endpoint with CSRF protection enabled to illustrate the concept:
+
+| Method | Endpoint                  | Description                           | CSRF Required |
+| ------ | ------------------------- | ------------------------------------- | ------------- |
+| GET    | `/api/csrf-demo/token`    | Retrieve the CSRF token               | No            |
+| POST   | `/api/csrf-demo/feedback` | Submit feedback (CSRF token required) | Yes           |
+
+**Testing in Postman:**
+
+1. `GET /api/csrf-demo/token` — copy the returned `token` value
+2. `POST /api/csrf-demo/feedback` — add header `X-CSRF-TOKEN: <token>` and body param `message=Hello`
+3. Without the CSRF token, the POST request returns **403 Forbidden**
 
 ---
 

@@ -110,7 +110,7 @@ class AuthServiceTest {
         when(jwtService.generateAccessToken(user)).thenReturn("access-token");
         when(jwtService.generateRefreshToken(user)).thenReturn("refresh-token");
 
-        AuthResponse response = authService.login(request);
+        AuthResponse response = authService.login(request, "127.0.0.1");
 
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
@@ -126,7 +126,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
-        assertThrows(BadCredentialsException.class, () -> authService.login(request));
+        assertThrows(BadCredentialsException.class, () -> authService.login(request, "127.0.0.1"));
     }
 
     @Test
