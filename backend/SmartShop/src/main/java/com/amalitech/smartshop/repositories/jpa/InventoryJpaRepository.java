@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +53,7 @@ public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
      * JPQL is needed because derived queries cannot express UPDATE statements.
      */
     @Modifying
+    @Transactional
     @Query("UPDATE Inventory i SET i.quantity = :quantity WHERE i.product.id = :productId")
     int updateQuantityByProductId(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 
@@ -60,6 +62,7 @@ public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
      * JPQL is required because this conditional update cannot be expressed via derived queries.
      */
     @Modifying
+    @Transactional
     @Query("UPDATE Inventory i SET i.quantity = i.quantity - :quantity WHERE i.product.id = :productId AND i.quantity >= :quantity")
     int decrementStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 
@@ -68,6 +71,7 @@ public interface InventoryJpaRepository extends JpaRepository<Inventory, Long> {
      * JPQL is needed because derived queries cannot express arithmetic in UPDATE statements.
      */
     @Modifying
+    @Transactional
     @Query("UPDATE Inventory i SET i.quantity = i.quantity + :quantity WHERE i.product.id = :productId")
     int incrementStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
 

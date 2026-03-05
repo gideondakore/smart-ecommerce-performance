@@ -10,7 +10,6 @@ import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.mappers.UserMapper;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
-import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
 import com.amalitech.smartshop.interfaces.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,9 +33,6 @@ class UserServiceTest {
     private UserMapper userMapper;
 
     @Mock
-    private OrderJpaRepository orderRepository;
-
-    @Mock
     private SessionService sessionService;
 
     @Mock
@@ -46,7 +41,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        userService = new UserServiceImpl(userRepository, userMapper, orderRepository, sessionService, passwordEncoder);
+        userService = new UserServiceImpl(userRepository, userMapper, sessionService, passwordEncoder);
     }
 
     @Test
@@ -203,7 +198,6 @@ class UserServiceTest {
         entity.setId(1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(orderRepository.findByUser_Id(1L)).thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> userService.deleteUser(1L));
         verify(userRepository).delete(entity);

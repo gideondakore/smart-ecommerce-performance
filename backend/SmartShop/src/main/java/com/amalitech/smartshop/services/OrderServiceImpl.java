@@ -55,13 +55,11 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + addOrderDTO.getUserId()));
 
         List<OrderItem> orderItems = new ArrayList<>();
-        List<Inventory> inventoriesToUpdate = new ArrayList<>();
         double totalAmount = 0.0;
 
         for (OrderItemDTO itemDTO : addOrderDTO.getItems()) {
             Product product = validateAndGetProduct(itemDTO.getProductId());
-            Inventory inventory = validateAndReserveInventory(product, itemDTO.getQuantity());
-            inventoriesToUpdate.add(inventory);
+            decrementStockAtomically(product, itemDTO.getQuantity());
 
             double itemTotal = product.getPrice() * itemDTO.getQuantity();
             totalAmount += itemTotal;
@@ -72,8 +70,6 @@ public class OrderServiceImpl implements OrderService {
                     .totalPrice(itemTotal)
                     .build());
         }
-
-        inventoryRepository.saveAll(inventoriesToUpdate);
 
         Order order = Order.builder()
                 .user(user)
@@ -161,19 +157,24 @@ public class OrderServiceImpl implements OrderService {
         return product;
     }
 
-    private Inventory validateAndReserveInventory(Product product, int requestedQuantity) {
-        Inventory inventory = inventoryRepository.findByProduct_Id(product.getId())
-                .orElseThrow(() -> new InsufficientStockException("Product '" + product.getName() + "' is out of stock"));
-
-        if (inventory.getQuantity() < requestedQuantity) {
+    /**
+     * Atomically decrements stock using a conditional UPDATE query.
+     * This prevents the race condition where two concurrent transactions
+     * could both read the same quantity, both pass the check, and both
+     * commit, resulting in overselling.
+     */
+    private void decrementStockAtomically(Product product, int requestedQuantity) {
+        int updatedRows = inventoryRepository.decrementStock(product.getId(), requestedQuantity);
+        if (updatedRows == 0) {
+            Inventory inventory = inventoryRepository.findByProduct_Id(product.getId()).orElse(null);
+            if (inventory == null) {
+                throw new InsufficientStockException("Product '" + product.getName() + "' is out of stock");
+            }
             throw new InsufficientStockException(
                     "Insufficient stock for product '" + product.getName()
                             + "'. Available: " + inventory.getQuantity()
                             + ", Requested: " + requestedQuantity);
         }
-
-        inventory.setQuantity(inventory.getQuantity() - requestedQuantity);
-        return inventory;
     }
 
     @Override

@@ -36,3 +36,7 @@ build/
 Smart E commerce
 .env
 GRAPHQL_AUTH.md
+
+
+## Personal Notes
+SPRING_SECURITY_NOTES.md

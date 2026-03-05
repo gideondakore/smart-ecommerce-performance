@@ -79,7 +79,7 @@ class OrderServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(inventoryRepository.findByProduct_Id(1L)).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.decrementStock(1L, 2)).thenReturn(1);
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         when(orderRepository.findById(savedOrder.getId())).thenReturn(Optional.of(savedOrder));
         when(orderMapper.toResponseDTO(savedOrder)).thenReturn(responseDTO);

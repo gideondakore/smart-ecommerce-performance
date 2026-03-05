@@ -6,14 +6,12 @@ import com.amalitech.smartshop.dtos.requests.UserRegistrationDTO;
 import com.amalitech.smartshop.dtos.responses.LoginResponseDTO;
 import com.amalitech.smartshop.dtos.responses.UserRoleStatsDTO;
 import com.amalitech.smartshop.dtos.responses.UserSummaryDTO;
-import com.amalitech.smartshop.entities.Order;
 import com.amalitech.smartshop.entities.User;
 import com.amalitech.smartshop.exceptions.ResourceAlreadyExistsException;
 import com.amalitech.smartshop.exceptions.ResourceNotFoundException;
 import com.amalitech.smartshop.interfaces.UserService;
 import com.amalitech.smartshop.interfaces.SessionService;
 import com.amalitech.smartshop.mappers.UserMapper;
-import com.amalitech.smartshop.repositories.jpa.OrderJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +33,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserJpaRepository userRepository;
     private final UserMapper userMapper;
-    private final OrderJpaRepository orderRepository;
     private final SessionService sessionService;
     private final PasswordEncoder passwordEncoder;
 
@@ -120,13 +117,6 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-
-        sessionService.deleteAllUserSessions(id);
-
-        List<Order> orders = orderRepository.findByUser_Id(id);
-        for (Order order : orders) {
-            orderRepository.delete(order);
-        }
 
         userRepository.delete(user);
         log.info("User deleted successfully: {}", id);
