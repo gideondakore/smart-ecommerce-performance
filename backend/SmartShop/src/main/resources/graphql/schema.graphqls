@@ -165,8 +165,10 @@ input RegisterInput {
 }
 
 type AuthResponse {
-  token: String!
-  id: ID!
+  accessToken: String!
+  refreshToken: String!
+  tokenType: String!
+  userId: ID!
   email: String!
   firstName: String!
   lastName: String!

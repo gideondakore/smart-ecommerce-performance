@@ -72,25 +72,29 @@ export const userApi = {
     role?: string;
   }) =>
     fetchApi<{
-      token: string;
+      accessToken: string;
+      refreshToken: string;
+      tokenType: string;
+      userId: number;
       email: string;
       role: string;
       firstName: string;
       lastName: string;
-      id: number;
-    }>("/users/register", {
+    }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     }),
   login: (data: { email: string; password: string }) =>
     fetchApi<{
-      token: string;
+      accessToken: string;
+      refreshToken: string;
+      tokenType: string;
+      userId: number;
       email: string;
       role: string;
       firstName: string;
       lastName: string;
-      id: number;
-    }>("/users/login", {
+    }>("/auth/login", {
       method: "POST",
       body: JSON.stringify(data),
     }),

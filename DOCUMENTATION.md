@@ -472,3 +472,7 @@ smartshopjpa/
 ## License
 
 This project is for educational purposes as part of the Spring Data JPA lab assignment.
+
+## OAuth2 Testing
+
+-- Redirect url: http://localhost:8080/oauth2/authorization/google

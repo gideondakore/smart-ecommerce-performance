@@ -13,4 +13,5 @@ public record ApiResponse<T>(
         @Schema(description = "Response data payload")
         T data
 ) {
+        
 }

@@ -70,13 +70,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const res = await userApi.login({ email, password });
-    // Backend returns ApiResponse with data wrapper: {status, message, data: {token, ...userData}}
     const loginData = res.data;
 
-    setAuthToken(loginData.token);
-    // The user data is in the same object as token
+    setAuthToken(loginData.accessToken);
+    if (loginData.refreshToken) {
+      localStorage.setItem("refreshToken", loginData.refreshToken);
+    }
     const userData = {
-      id: loginData.id,
+      id: loginData.userId,
       firstName: loginData.firstName,
       lastName: loginData.lastName,
       email: loginData.email,
@@ -98,12 +99,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
     });
-    // Backend returns ApiResponse with data wrapper: {status, message, data: {token, ...userData}}
     const registerData = res.data;
-    setAuthToken(registerData.token);
-    // The user data is in the same object as token
+    setAuthToken(registerData.accessToken);
+    if (registerData.refreshToken) {
+      localStorage.setItem("refreshToken", registerData.refreshToken);
+    }
     const userData = {
-      id: registerData.id,
+      id: registerData.userId,
       firstName: registerData.firstName,
       lastName: registerData.lastName,
       email: registerData.email,

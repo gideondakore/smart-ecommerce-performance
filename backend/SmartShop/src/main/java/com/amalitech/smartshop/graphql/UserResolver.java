@@ -1,12 +1,13 @@
 package com.amalitech.smartshop.graphql;
 
 import com.amalitech.smartshop.config.GraphQLRequiresRole;
-import com.amalitech.smartshop.dtos.requests.LoginDTO;
-import com.amalitech.smartshop.dtos.requests.UserRegistrationDTO;
-import com.amalitech.smartshop.dtos.responses.LoginResponseDTO;
+import com.amalitech.smartshop.dtos.requests.AuthLoginRequest;
+import com.amalitech.smartshop.dtos.requests.AuthRegisterRequest;
+import com.amalitech.smartshop.dtos.responses.AuthResponse;
 import com.amalitech.smartshop.dtos.responses.UserSummaryDTO;
 import com.amalitech.smartshop.enums.UserRole;
 import com.amalitech.smartshop.interfaces.UserService;
+import com.amalitech.smartshop.security.AuthService;
 import graphql.schema.DataFetchingEnvironment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.List;
 public class UserResolver {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @QueryMapping
     @GraphQLRequiresRole(UserRole.ADMIN)
@@ -34,30 +36,26 @@ public class UserResolver {
 
     @MutationMapping
     public AuthResponse login(@Argument LoginInput input) {
-        LoginDTO dto = new LoginDTO();
-        dto.setEmail(input.email());
-        dto.setPassword(input.password());
-        LoginResponseDTO response = userService.loginUser(dto);
-        return new AuthResponse(response.getToken(), response.getId(), response.getEmail(),
-                response.getFirstName(), response.getLastName(), response.getRole());
+        AuthLoginRequest request = AuthLoginRequest.builder()
+                .email(input.email())
+                .password(input.password())
+                .build();
+        return authService.login(request, "graphql");
     }
 
     @MutationMapping
     public AuthResponse register(@Argument RegisterInput input) {
-        UserRegistrationDTO dto = new UserRegistrationDTO();
-        dto.setFirstName(input.firstName());
-        dto.setLastName(input.lastName());
-        dto.setEmail(input.email());
-        dto.setPassword(input.password());
-        dto.setRole(input.role());
-        LoginResponseDTO response = userService.addUser(dto);
-        return new AuthResponse(response.getToken(), response.getId(), response.getEmail(),
-                response.getFirstName(), response.getLastName(), response.getRole());
+        AuthRegisterRequest request = AuthRegisterRequest.builder()
+                .firstName(input.firstName())
+                .lastName(input.lastName())
+                .email(input.email())
+                .password(input.password())
+                .role(input.role())
+                .build();
+        return authService.register(request);
     }
 
     public record LoginInput(String email, String password) {}
 
     public record RegisterInput(String firstName, String lastName, String email, String password, UserRole role) {}
-
-    public record AuthResponse(String token, Long id, String email, String firstName, String lastName, String role) {}
 }
