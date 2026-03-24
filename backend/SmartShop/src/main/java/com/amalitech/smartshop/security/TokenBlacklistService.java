@@ -44,7 +44,8 @@ public class TokenBlacklistService {
         if (System.currentTimeMillis() > expiry) {
             revokedTokens.remove(token);
             return false;
-        }
+        } // Not necessary
+
         return true;
     }
 

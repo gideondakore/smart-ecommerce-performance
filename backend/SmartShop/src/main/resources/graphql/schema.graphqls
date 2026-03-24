@@ -9,8 +9,8 @@ type User {
 enum UserRole {
   CUSTOMER
   ADMIN
-  SELLER
   VENDOR
+  STAFF
 }
 
 type Product {
