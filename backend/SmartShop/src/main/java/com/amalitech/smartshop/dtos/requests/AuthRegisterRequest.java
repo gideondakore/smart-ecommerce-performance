@@ -32,5 +32,6 @@ public class AuthRegisterRequest {
     @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
     private String password;
 
+    @Builder.Default
     private UserRole role = UserRole.CUSTOMER;
 }

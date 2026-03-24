@@ -24,7 +24,9 @@ public interface ProductMapper {
     @Mapping(target = "inventory", ignore = true)
     @Mapping(target = "available", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "reviews", ignore = true)
+    @Mapping(target = "cartItems", ignore = true)
+    @Mapping(target = "orderItems", ignore = true)
     Product toEntity(AddProductDTO addProductDTO);
 
     @Mapping(target = "id", ignore = true)
@@ -33,6 +35,10 @@ public interface ProductMapper {
     @Mapping(target = "inventory", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "available", source = "isAvailable")
+    @Mapping(target = "reviews", ignore = true)
+    @Mapping(target = "cartItems", ignore = true)
+    @Mapping(target = "orderItems", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(UpdateProductDTO updateDTO, @MappingTarget Product entity);
 }
