@@ -28,15 +28,6 @@ public interface UserMapper {
     @Mapping(target = "reviews", ignore = true)
     User toEntity(UserRegistrationDTO userRegistrationDTO);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "oauth2Provider", ignore = true)
-    @Mapping(target = "oauth2Id", ignore = true)
-    @Mapping(target = "cart", ignore = true)
-    @Mapping(target = "orders", ignore = true)
-    @Mapping(target = "sessions", ignore = true)
-    @Mapping(target = "reviews", ignore = true)
     UserSummaryDTO toSummaryDTO(User user);
 
     @Mapping(target = "id", ignore = true)
