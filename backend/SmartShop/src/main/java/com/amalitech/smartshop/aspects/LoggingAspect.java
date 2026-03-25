@@ -22,48 +22,58 @@ import java.util.Map;
 @Slf4j
 public class LoggingAspect {
 
+    private static final long SLOW_REQUEST_THRESHOLD_MS = 250;
+
     @Pointcut("within(com.amalitech.smartshop.controllers..*)")
     public void controllerLayer() {
     }
 
     @Around("controllerLayer()")
     public Object logAroundControllerMethods(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
 
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String method = request.getMethod();
         String path = request.getRequestURI();
-        String clientIp = request.getRemoteAddr();
+        String controllerMethod = joinPoint.getSignature().getName();
 
-        Object[] args = joinPoint.getArgs();
-        String params = args.length > 0
-            ? Arrays.stream(args)
-            .map(this::formatArgument)
-            .toList()
-            .toString()
-            : "none";
+        if (log.isDebugEnabled()) {
+            String clientIp = request.getRemoteAddr();
+            Object[] args = joinPoint.getArgs();
+            String params = args.length > 0
+                    ? Arrays.stream(args)
+                    .map(this::formatArgument)
+                    .toList()
+                    .toString()
+                    : "none";
 
-        log.info("→ {} {} | Controller: {} | Params: {} | IP: {}",
-                method, path, joinPoint.getSignature().getName(), params, clientIp);
+            log.debug("→ {} {} | Controller: {} | Params: {} | IP: {}",
+                    method, path, controllerMethod, params, clientIp);
+        }
 
         try {
             Object result = joinPoint.proceed();
-            long executionTime = System.currentTimeMillis() - startTime;
+            long executionTime = (System.nanoTime() - startTime) / 1_000_000;
             
             int status = 200;
             if (result instanceof ResponseEntity) {
                 status = ((ResponseEntity<?>) result).getStatusCode().value();
             }
-            
-            log.info("← {} {} | Status: {} | Controller: {} | Time: {}ms",
-                    method, path, status, joinPoint.getSignature().getName(), executionTime);
+
+            if (executionTime >= SLOW_REQUEST_THRESHOLD_MS) {
+                log.info("← {} {} | Status: {} | Controller: {} | Time: {}ms",
+                        method, path, status, controllerMethod, executionTime);
+            } else if (log.isDebugEnabled()) {
+                log.debug("← {} {} | Status: {} | Controller: {} | Time: {}ms",
+                        method, path, status, controllerMethod, executionTime);
+            }
             
             return result;
         } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - startTime;
+            long executionTime = (System.nanoTime() - startTime) / 1_000_000;
 
             log.error("← {} {} | Controller: {} | Status: FAILED | Time: {}ms | Error: {} - {}",
-                    method, path, joinPoint.getSignature().getName(), executionTime,
+                    method, path, controllerMethod, executionTime,
                     e.getClass().getSimpleName(), e.getMessage());
 
             throw e;
