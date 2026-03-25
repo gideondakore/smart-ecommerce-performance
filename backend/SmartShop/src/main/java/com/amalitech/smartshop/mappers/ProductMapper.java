@@ -27,6 +27,7 @@ public interface ProductMapper {
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "cartItems", ignore = true)
     @Mapping(target = "orderItems", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Product toEntity(AddProductDTO addProductDTO);
 
     @Mapping(target = "id", ignore = true)
