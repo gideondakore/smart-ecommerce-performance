@@ -31,7 +31,6 @@ public class LoggingAspect {
         long startTime = System.currentTimeMillis();
 
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        log.info("HTTPS SERVLET REQUEST: " + request);
         String method = request.getMethod();
         String path = request.getRequestURI();
         String clientIp = request.getRemoteAddr();
