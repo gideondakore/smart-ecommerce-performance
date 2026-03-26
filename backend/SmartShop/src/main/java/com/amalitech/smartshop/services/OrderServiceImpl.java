@@ -1,9 +1,11 @@
 package com.amalitech.smartshop.services;
 
+import com.amalitech.smartshop.async.AsyncAggregationService;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.OrderItemDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
 import com.amalitech.smartshop.dtos.responses.BestSellerDTO;
+import com.amalitech.smartshop.dtos.responses.OrderAnalyticsSummaryDTO;
 import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.dtos.responses.RevenueReportDTO;
@@ -30,8 +32,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 
 @Service
@@ -45,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserJpaRepository userRepository;
     private final InventoryJpaRepository inventoryRepository;
     private final OrderMapper orderMapper;
+    private final AsyncAggregationService asyncAggregationService;
 
     @Override
     @Transactional
@@ -244,4 +247,23 @@ public class OrderServiceImpl implements OrderService {
                 .build()
         ).toList();
     }
+
+            @Override
+            @Transactional(readOnly = true)
+            public OrderAnalyticsSummaryDTO getOrderAnalyticsSummary(String startDate, String endDate, Integer limit) {
+            log.info("Generating order analytics summary from {} to {} with best-seller limit {}", startDate, endDate, limit);
+
+            CompletableFuture<List<RevenueReportDTO>> revenueReportFuture = asyncAggregationService
+                .supplyAsync(() -> getRevenueReport(startDate, endDate));
+            CompletableFuture<List<BestSellerDTO>> bestSellersFuture = asyncAggregationService
+                .supplyAsync(() -> getBestSellingProducts(limit));
+
+            CompletableFuture<Void> allQueries = CompletableFuture.allOf(revenueReportFuture, bestSellersFuture);
+            asyncAggregationService.await(allQueries);
+
+            return OrderAnalyticsSummaryDTO.builder()
+                .revenueReport(asyncAggregationService.await(revenueReportFuture))
+                .bestSellers(asyncAggregationService.await(bestSellersFuture))
+                .build();
+            }
 }
