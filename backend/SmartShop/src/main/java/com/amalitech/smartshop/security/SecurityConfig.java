@@ -3,7 +3,6 @@ package com.amalitech.smartshop.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -23,18 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Central Spring Security configuration.
- * Configures JWT-based stateless authentication, CORS, CSRF,
+ * Configures JWT-based stateless authentication, CORS,
  * OAuth2 login, and role-based access control.
- *
- * <p>Two filter chains are defined:
- * <ul>
- *   <li><b>csrfDemoFilterChain</b> (Order 1) — Handles the /api/csrf-demo/** form-based
- *       endpoints with CSRF protection ENABLED. This illustrates how CSRF tokens protect
- *       server-rendered forms from cross-site request forgery attacks.</li>
- *   <li><b>filterChain</b> (Order 2) — Main API filter chain with CSRF DISABLED. This is
- *       appropriate for stateless JWT APIs where tokens are sent via the Authorization
- *       header, not cookies, making CSRF attacks inapplicable.</li>
- * </ul>
  */
 @Configuration
 @EnableWebSecurity
@@ -51,34 +40,14 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     /**
-     * CSRF-demo filter chain: illustrates CSRF protection on a form-based endpoint.
-     * CSRF is ENABLED here because the form uses session-based submission (cookies),
-     * making it vulnerable to cross-site request forgery without a CSRF token.
-     */
-    @Bean
-    @Order(1)
-    public SecurityFilterChain csrfDemoFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .securityMatcher("/api/csrf-demo/**")
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/csrf-demo/token"))
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .build();
-    }
-
-    /**
      * Main API filter chain for JWT-based stateless authentication.
      * CSRF is DISABLED because JWT tokens are transmitted in the Authorization header,
      * not in cookies, so CSRF attacks are not applicable.
      */
     @Bean
-    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                // CSRF disabled for stateless JWT API — tokens are not stored in cookies,
-                // so CSRF attacks are not applicable for Bearer token authentication
+                // CSRF disabled for stateless JWT API
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session ->
@@ -129,7 +98,6 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
-
                 )
                 .build();
     }
