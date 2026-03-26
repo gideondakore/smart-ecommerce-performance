@@ -77,21 +77,31 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        if (tokenBlacklistService.isRevoked(token)) {
-            log.warn("Attempted use of revoked JWT for user: {}", userDetails.getUsername());
-            return false;
-        }
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        String username = extractUsernameIfValid(token);
+        return username != null && username.equals(userDetails.getUsername());
     }
 
     public boolean isTokenStructurallyValid(String token) {
         try {
-            extractAllClaims(token);
-            return !isTokenExpired(token) && !tokenBlacklistService.isRevoked(token);
+            return extractUsernameIfValid(token) != null;
         } catch (JwtException | IllegalArgumentException exception) {
             log.warn("Invalid JWT token: {}", exception.getMessage());
             return false;
+        }
+    }
+
+    public String extractUsernameIfValid(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            if (claims.getExpiration() == null || claims.getExpiration().before(new Date())) {
+                return null;
+            }
+            if (tokenBlacklistService.isRevoked(token)) {
+                return null;
+            }
+            return claims.getSubject();
+        } catch (JwtException | IllegalArgumentException exception) {
+            return null;
         }
     }
 
