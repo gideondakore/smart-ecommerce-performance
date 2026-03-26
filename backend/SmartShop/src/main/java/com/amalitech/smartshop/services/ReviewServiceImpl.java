@@ -1,5 +1,6 @@
 package com.amalitech.smartshop.services;
 
+import com.amalitech.smartshop.async.AsyncAggregationService;
 import com.amalitech.smartshop.dtos.requests.AddReviewDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateReviewDTO;
 import com.amalitech.smartshop.dtos.responses.RatingDistributionDTO;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 
 @Service
@@ -31,6 +33,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewJpaRepository reviewRepository;
     private final ProductJpaRepository productRepository;
     private final UserJpaRepository userRepository;
+    private final AsyncAggregationService asyncAggregationService;
 
     @Override
     @Transactional
@@ -157,8 +160,16 @@ public class ReviewServiceImpl implements ReviewService {
         productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
-        Double averageRating = reviewRepository.calculateAverageRatingByProductId(productId);
-        long reviewCount = reviewRepository.countByProduct_Id(productId);
+        CompletableFuture<Double> averageRatingFuture = asyncAggregationService
+            .supplyAsync(() -> reviewRepository.calculateAverageRatingByProductId(productId));
+        CompletableFuture<Long> reviewCountFuture = asyncAggregationService
+            .supplyAsync(() -> reviewRepository.countByProduct_Id(productId));
+
+        CompletableFuture<Void> allQueries = CompletableFuture.allOf(averageRatingFuture, reviewCountFuture);
+        asyncAggregationService.await(allQueries);
+
+        Double averageRating = asyncAggregationService.await(averageRatingFuture);
+        long reviewCount = asyncAggregationService.await(reviewCountFuture);
 
         return ReviewSummaryDTO.builder()
                 .productId(productId)

@@ -1,5 +1,6 @@
 package com.amalitech.smartshop.services;
 
+import com.amalitech.smartshop.async.AsyncAggregationService;
 import com.amalitech.smartshop.dtos.requests.AddCartItemDTO;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.OrderItemDTO;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ public class CartServiceImpl implements CartService {
     private final ProductJpaRepository productRepository;
     private final UserJpaRepository userRepository;
     private final OrderService orderService;
+    private final AsyncAggregationService asyncAggregationService;
 
     @Override
     @Transactional
@@ -205,8 +208,8 @@ public class CartServiceImpl implements CartService {
         log.info("Updating cart item by product: {} for user: {}", productId, userId);
 
         Cart cart = getOrCreateCart(userId);
-        CartItem cartItem = cartItemRepository.findByCartIdAndProduct_Id(cart.getId(), productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found in cart with ID: " + productId));
+        cartItemRepository.findByCartIdAndProduct_Id(cart.getId(), productId)
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found in cart with ID: " + productId));
 
         cartItemRepository.updateQuantityByCartIdAndProductId(cart.getId(), productId, quantity);
 
@@ -262,8 +265,16 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
 
-        List<Object[]> summary = cartItemRepository.getCartItemSummary(cart.getId());
-        List<Object[]> cartSummary = cartRepository.getCartSummaryByUserId(userId);
+        CompletableFuture<List<Object[]>> itemSummaryFuture = asyncAggregationService
+            .supplyAsync(() -> cartItemRepository.getCartItemSummary(cart.getId()));
+        CompletableFuture<List<Object[]>> cartSummaryFuture = asyncAggregationService
+            .supplyAsync(() -> cartRepository.getCartSummaryByUserId(userId));
+
+        CompletableFuture<Void> allQueries = CompletableFuture.allOf(itemSummaryFuture, cartSummaryFuture);
+        asyncAggregationService.await(allQueries);
+
+        List<Object[]> summary = asyncAggregationService.await(itemSummaryFuture);
+        List<Object[]> cartSummary = asyncAggregationService.await(cartSummaryFuture);
 
         Long itemCount = 0L;
         Long totalQuantity = 0L;
