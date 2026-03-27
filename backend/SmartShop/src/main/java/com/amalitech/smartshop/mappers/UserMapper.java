@@ -20,6 +20,12 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "oauth2Provider", ignore = true)
+    @Mapping(target = "oauth2Id", ignore = true)
+    @Mapping(target = "cart", ignore = true)
+    @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "sessions", ignore = true)
+    @Mapping(target = "reviews", ignore = true)
     User toEntity(UserRegistrationDTO userRegistrationDTO);
 
     UserSummaryDTO toSummaryDTO(User user);
@@ -28,8 +34,13 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "firstName", source = "firstName")
-    @Mapping(target = "lastName", source = "lastName")
+    @Mapping(target = "oauth2Provider", ignore = true)
+    @Mapping(target = "oauth2Id", ignore = true)
+    @Mapping(target = "cart", ignore = true)
+    @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "sessions", ignore = true)
+    @Mapping(target = "reviews", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(UpdateUserDTO updateDTO, @MappingTarget User entity);
 }

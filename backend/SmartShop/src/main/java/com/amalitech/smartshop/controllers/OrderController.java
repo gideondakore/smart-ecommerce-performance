@@ -4,6 +4,7 @@ import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
 import com.amalitech.smartshop.dtos.responses.ApiResponse;
 import com.amalitech.smartshop.dtos.responses.BestSellerDTO;
+import com.amalitech.smartshop.dtos.responses.OrderAnalyticsSummaryDTO;
 import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.dtos.responses.PagedResponse;
@@ -187,6 +188,22 @@ public class OrderController {
             @RequestParam(defaultValue = "10") int limit) {
         List<BestSellerDTO> bestSellers = orderService.getBestSellingProducts(limit);
         ApiResponse<List<BestSellerDTO>> apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Best sellers fetched successfully", bestSellers);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Get order analytics summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/analytics")
+    public ResponseEntity<ApiResponse<OrderAnalyticsSummaryDTO>> getOrderAnalyticsSummary(
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam(defaultValue = "10") int limit) {
+        OrderAnalyticsSummaryDTO summary = orderService.getOrderAnalyticsSummary(startDate, endDate, limit);
+        ApiResponse<OrderAnalyticsSummaryDTO> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Order analytics summary fetched successfully",
+                summary
+        );
         return ResponseEntity.ok(apiResponse);
     }
 }

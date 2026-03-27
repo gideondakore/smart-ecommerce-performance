@@ -1,4 +1,4 @@
-package com.amalitech.smartshop.repositories.jpa;
+package com.amalitech.smartshop.services;
 
 import com.amalitech.smartshop.entities.Category;
 import com.amalitech.smartshop.entities.Product;

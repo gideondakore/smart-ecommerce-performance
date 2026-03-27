@@ -20,4 +20,5 @@ out/
 *.swp
 .DS_Store
 *.env
-.env.*  
+.env.*
+Smart_E-Commerce_System_Lab8.pdf  

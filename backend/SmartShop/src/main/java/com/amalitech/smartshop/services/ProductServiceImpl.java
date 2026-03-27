@@ -14,7 +14,6 @@ import com.amalitech.smartshop.interfaces.ProductService;
 import com.amalitech.smartshop.mappers.ProductMapper;
 import com.amalitech.smartshop.repositories.jpa.CategoryJpaRepository;
 import com.amalitech.smartshop.repositories.jpa.ProductJpaRepository;
-import com.amalitech.smartshop.repositories.jpa.ProductSpecification;
 import com.amalitech.smartshop.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

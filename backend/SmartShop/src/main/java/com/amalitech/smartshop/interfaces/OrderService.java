@@ -2,6 +2,7 @@ package com.amalitech.smartshop.interfaces;
 
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
+import com.amalitech.smartshop.dtos.responses.OrderAnalyticsSummaryDTO;
 import com.amalitech.smartshop.dtos.responses.OrderResponseDTO;
 import com.amalitech.smartshop.dtos.responses.BestSellerDTO;
 import com.amalitech.smartshop.dtos.responses.OrderItemResponseDTO;
@@ -105,4 +106,14 @@ public interface OrderService {
      * @return list of daily revenue entries
      */
     List<RevenueReportDTO> getRevenueReport(String startDate, String endDate);
+
+    /**
+     * Get analytics summary with revenue and best-selling products.
+     *
+     * @param startDate start date (yyyy-MM-dd)
+     * @param endDate end date (yyyy-MM-dd)
+     * @param limit maximum number of best sellers
+     * @return analytics summary payload
+     */
+    OrderAnalyticsSummaryDTO getOrderAnalyticsSummary(String startDate, String endDate, Integer limit);
 }

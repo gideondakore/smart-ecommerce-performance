@@ -1,5 +1,6 @@
 package com.amalitech.smartshop.services;
 
+import com.amalitech.smartshop.async.AsyncAggregationService;
 import com.amalitech.smartshop.dtos.requests.AddOrderDTO;
 import com.amalitech.smartshop.dtos.requests.OrderItemDTO;
 import com.amalitech.smartshop.dtos.requests.UpdateOrderDTO;
@@ -43,11 +44,14 @@ class OrderServiceTest {
     @Mock
     private OrderMapper orderMapper;
 
+    @Mock
+    private AsyncAggregationService asyncAggregationService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         orderService = new OrderServiceImpl(orderRepository, orderItemRepository, productRepository,
-                                       userRepository, inventoryRepository, orderMapper);
+                                       userRepository, inventoryRepository, orderMapper, asyncAggregationService);
     }
 
     @Test
