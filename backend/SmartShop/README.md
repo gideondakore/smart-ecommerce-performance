@@ -94,14 +94,35 @@ DATABASE_PASSWORD=your_password
 
 ### Installation & Run
 
+#### <u>Using Local Run</u>
 1. Clone the repository.
 2. Build the project:
    ```bash
    mvn clean install
    ```
-3. Run the application:
+3. Change directory to backend directory
+   ```bash
+   cd backend
+   ```
+4. Run the application:
    ```bash
    mvn spring-boot:run
+   ```
+
+<br></br>
+#### <u>Using Docker Run</u>
+1. Clone the repository.
+2. Build the project:
+   ```bash
+   mvn clean install
+   ```
+3. Change directory to backend directory
+   ```bash
+   cd backend
+   ```
+4. Run the application:
+   ```bassh
+   docker compose up -d
    ```
 
 ## API Documentation
