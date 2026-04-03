@@ -1,5 +1,6 @@
 package com.amalitech.smartshop.security;
 
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,6 +84,14 @@ public class SecurityConfig {
 
                         // Staff endpoints accessible by ADMIN and STAFF
                         .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // Permitting FORWARD and ERROR dispatches avoids unexpected AccessDeniedException errors.
+                        //  Allow FORWARD and ERROR for MVC views and error pages
+                        .dispatcherTypeMatchers(
+                                DispatcherType.FORWARD, DispatcherType.ERROR
+                        ).permitAll()
+
+                        .requestMatchers("/css/**").permitAll()
 
                         // All other requests require authentication
                         .anyRequest().authenticated()

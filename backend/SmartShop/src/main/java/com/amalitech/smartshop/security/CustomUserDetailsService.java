@@ -24,13 +24,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "userProfiles", key = "#username")
-    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-        log.debug("Loading user details for: {}", username);
-        return userRepository.findByEmail(username)
+    @Cacheable(value = "userProfiles", key = "#email")
+    public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
+        log.debug("Loading user details for: {}", email);
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("User not found with email: {}", username);
-                    return new UsernameNotFoundException("User not found with email: " + username);
+                    log.warn("User not found with email: {}", email);
+                    return new UsernameNotFoundException("User not found with email: " + email);
                 });
     }
 }
