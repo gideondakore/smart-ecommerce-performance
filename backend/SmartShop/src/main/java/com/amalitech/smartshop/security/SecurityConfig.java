@@ -45,7 +45,7 @@ public class SecurityConfig {
      * not in cookies, so CSRF attacks are not applicable.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         return http
                 // CSRF disabled for stateless JWT API
                 .csrf(AbstractHttpConfigurer::disable)
@@ -109,7 +109,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         return new ProviderManager(authenticationProvider());
     }
 

@@ -66,7 +66,7 @@ public class AuthService {
                             request.getPassword()
                     )
             );
-        } catch (BadCredentialsException exception) {
+        } catch (BadCredentialsException _) {
             log.warn("Login failed for user: {} from IP: {} — invalid credentials", request.getEmail(), clientIpAddress);
             throw new BadCredentialsException("Invalid email or password");
         }
