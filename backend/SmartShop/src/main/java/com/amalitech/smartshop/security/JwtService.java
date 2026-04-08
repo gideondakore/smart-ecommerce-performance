@@ -7,6 +7,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private final SecretKey signingKey;
+    @Getter
     private final long accessTokenExpirationMs;
     private final long refreshTokenExpirationMs;
     private final TokenBlacklistService tokenBlacklistService;
@@ -87,7 +89,7 @@ public class JwtService {
      */
     public boolean isTokenFormatValid(String token) {
         if (token == null || token.trim().isEmpty()) {
-            return false;
+            return true;
         }
         // Quick JWT structure check: header.payload.signature
         int dotCount = 0;
@@ -96,7 +98,7 @@ public class JwtService {
                 dotCount++;
             }
         }
-        return dotCount == 2;
+        return dotCount != 2;
     }
 
     public String extractUsername(String token) {
@@ -125,7 +127,7 @@ public class JwtService {
         return validationCache.get(cacheKey, key -> {
             try {
                 // Quick format validation first
-                if (!isTokenFormatValid(token)) {
+                if (isTokenFormatValid(token)) {
                     return false;
                 }
 
@@ -144,11 +146,7 @@ public class JwtService {
 
                 // Verify username matches
                 String username = claims.getSubject();
-                if (username == null || !username.equals(userDetails.getUsername())) {
-                    return false;
-                }
-
-                return true;
+                return username != null && username.equals(userDetails.getUsername());
             } catch (JwtException | IllegalArgumentException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Token validation failed: {}", e.getMessage());
@@ -162,7 +160,7 @@ public class JwtService {
      * OPTIMIZED: Extract username with caching
      */
     public String extractUsernameIfValid(String token) {
-        if (token == null || !isTokenFormatValid(token)) {
+        if (token == null || isTokenFormatValid(token)) {
             return null;
         }
 
@@ -191,10 +189,6 @@ public class JwtService {
 
     public boolean isTokenStructurallyValid(String token) {
         return extractUsernameIfValid(token) != null;
-    }
-
-    public long getAccessTokenExpirationMs() {
-        return accessTokenExpirationMs;
     }
 
     @SuppressWarnings("unchecked")
@@ -234,31 +228,4 @@ public class JwtService {
         }
     }
 
-    /**
-     * Original method for backward compatibility
-     */
-    private Claims extractAllClaims(String token) {
-        return extractAllClaimsWithCache(token);
-    }
-
-    /**
-     * Clear cache for a specific token (useful on logout)
-     */
-    public void invalidateCache(String token) {
-        claimsCache.invalidate(token);
-        validationCache.invalidate(token);
-    }
-
-    /**
-     * Get cache statistics (for monitoring)
-     */
-    public String getCacheStats() {
-        return String.format("Claims cache: hit=%d, miss=%d, hitRate=%.2f%% | Validation cache: hit=%d, miss=%d, hitRate=%.2f%%",
-                claimsCache.stats().hitCount(),
-                claimsCache.stats().missCount(),
-                claimsCache.stats().hitRate() * 100,
-                validationCache.stats().hitCount(),
-                validationCache.stats().missCount(),
-                validationCache.stats().hitRate() * 100);
-    }
 }

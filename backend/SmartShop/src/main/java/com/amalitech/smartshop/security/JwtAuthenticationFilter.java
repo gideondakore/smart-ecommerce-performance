@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = authHeader.substring(BEARER_PREFIX.length());
 
         // Fast path: Quick format validation
-        if (!jwtService.isTokenFormatValid(jwt)) {
+        if (jwtService.isTokenFormatValid(jwt)) {
             filterChain.doFilter(request, response);
             return;
         }
