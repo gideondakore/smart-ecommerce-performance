@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -63,14 +64,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Validate token (now with caching)
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // Creating new SecurityContext instance to avoid race condition
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
                                     userDetails.getAuthorities()
                             );
+
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    context.setAuthentication(authToken);
+
+                    SecurityContextHolder.setContext(context);
 
                     if (log.isDebugEnabled()) {
                         log.debug("Authenticated user: {}", username);
