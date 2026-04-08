@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:18.3
     ports:
-      - "5432:5432"
+      - "${DOCKER_DB_PORT}:${SPRING_DB_PORT}"
     restart: always
     env_file:
       - .env
@@ -24,7 +24,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "${DOCKER_APP_PORT}:${SPRING_APP_PORT}"
     depends_on:
       db:
         condition: service_healthy
