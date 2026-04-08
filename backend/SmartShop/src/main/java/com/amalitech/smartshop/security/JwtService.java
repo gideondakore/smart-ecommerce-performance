@@ -87,7 +87,7 @@ public class JwtService {
     /**
      * FAST PATH: Quick format validation without full parsing
      */
-    public boolean isTokenFormatValid(String token) {
+    public boolean isTokenFormatInvalid(String token) {
         if (token == null || token.trim().isEmpty()) {
             return true;
         }
@@ -127,7 +127,7 @@ public class JwtService {
         return validationCache.get(cacheKey, key -> {
             try {
                 // Quick format validation first
-                if (isTokenFormatValid(token)) {
+                if (isTokenFormatInvalid(token)) {
                     return false;
                 }
 
@@ -160,7 +160,7 @@ public class JwtService {
      * OPTIMIZED: Extract username with caching
      */
     public String extractUsernameIfValid(String token) {
-        if (token == null || isTokenFormatValid(token)) {
+        if (token == null || isTokenFormatInvalid(token)) {
             return null;
         }
 

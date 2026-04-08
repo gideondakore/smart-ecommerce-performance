@@ -1,5 +1,7 @@
 package com.amalitech.smartshop.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,8 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -29,7 +29,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     // Cache for user details with simple TTL (5 minutes)
-    private final ConcurrentHashMap<String, CachedUserDetails> userDetailsCache = new ConcurrentHashMap<>();
+    private final Cache<String, UserDetails> userDetailsCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .build();
+
+
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -51,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = authHeader.substring(BEARER_PREFIX.length());
 
         // Fast path: Quick format validation
-        if (jwtService.isTokenFormatValid(jwt)) {
+        if (jwtService.isTokenFormatInvalid(jwt)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -98,84 +103,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
         String method = request.getMethod();
 
         // Skip OPTIONS requests entirely
-        if ("OPTIONS".equalsIgnoreCase(method)) {
-            return true;
-        }
-
-        // Fast path for public GET endpoints
-        if ("GET".equalsIgnoreCase(method) &&
-                (path.startsWith("/api/products") || path.startsWith("/api/categories"))) {
-            return true;
-        }
-
-        // Public endpoints
-        return path.startsWith("/api/auth/login")
-                || path.startsWith("/api/auth/register")
-                || path.startsWith("/oauth2/")
-                || path.startsWith("/login/oauth2/")
-                || path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-resources")
-                || path.startsWith("/graphiql")
-                || path.startsWith("/actuator/health");
+        return "OPTIONS".equalsIgnoreCase(method);
     }
 
     /**
      * Get user details with caching (5-minute TTL)
      */
     private UserDetails getUserDetailsWithCache(String username) {
-        CachedUserDetails cached = userDetailsCache.get(username);
+        return userDetailsCache.get(username, key -> {
 
-        // Check if cache is valid (within 5 minutes)
-        if (cached != null && System.currentTimeMillis() - cached.cachedAt < 300_000) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache hit for user: {}", username);
+            if(log.isDebugEnabled()) {
+                log.info("Cache miss for user {}, loading from DB", key);
             }
-            return cached.userDetails;
-        }
-
-        // Cache miss or expired - load from DB
-        if (log.isDebugEnabled()) {
-            log.debug("Cache miss for user: {}, loading from DB", username);
-        }
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        userDetailsCache.put(username, new CachedUserDetails(userDetails));
-        return userDetails;
-    }
-
-    /**
-     * Invalidate cache for a user (call on logout or role change)
-     */
-    public void invalidateUserCache(String username) {
-        userDetailsCache.remove(username);
-        if (log.isDebugEnabled()) {
-            log.debug("Invalidated cache for user: {}", username);
-        }
-    }
-
-    /**
-     * Helper class for cached user details with timestamp
-     */
-    private static class CachedUserDetails {
-        final UserDetails userDetails;
-        final long cachedAt;
-
-        CachedUserDetails(UserDetails userDetails) {
-            this.userDetails = userDetails;
-            this.cachedAt = System.currentTimeMillis();
-        }
+            return userDetailsService.loadUserByUsername(username);
+        });
     }
 
 
-    @Bean
-    public FilterRegistrationBean<JwtAuthenticationFilter> filterRegistrationBean(JwtAuthenticationFilter filter) {
-        FilterRegistrationBean<JwtAuthenticationFilter> filterRegistrationBean = new FilterRegistrationBean<>(filter);
-        filterRegistrationBean.setEnabled(false);
-        return filterRegistrationBean;
-    }
+
 }
