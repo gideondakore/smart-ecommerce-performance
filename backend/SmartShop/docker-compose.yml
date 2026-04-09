@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:18.3
     ports:
-      - "${DOCKER_DB_PORT}:${SPRING_DB_PORT}"
+      - "${SPRING_DB_PORT}:${DOCKER_DB_PORT}"
     restart: always
     env_file:
       - .env
